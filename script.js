@@ -3,14 +3,13 @@ const newCoinButton = document.getElementById('open-modal');
 const closeModalButton = document.getElementById('close-modal');
 const addTransactionButton = document.getElementById('add-transaction');
 const modal = document.getElementById('modal');
-const transactionInputs = document.getElementById('transaction-inputs');
 const priceLabel = document.getElementById('price-label');
 const amountLabel = document.getElementById('amount-label');
 const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
 const currencySelect = document.getElementById('currency-select');
-const ownedCoinsPanel = document.getElementById('owned-coins-panel');
-const transactionTable = document.getElementById('transaction-table');
+const ownedCoinsPanel = document.getElementById('owned-coins-panel'); // Panel for owned coins
+const transactionTable = document.getElementById('transaction-table'); // Table for transactions
 const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
     totalCoins: document.getElementById('total-coins'),
@@ -35,7 +34,6 @@ const fallbackCurrencyNames = {
 // Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.add('hidden');
-    transactionInputs.classList.add('hidden');
     console.log('Modal hidden on page load.');
 
     // Populate the cryptocurrency dropdown
@@ -51,14 +49,13 @@ newCoinButton.addEventListener('click', () => {
 // Hide modal
 closeModalButton.addEventListener('click', () => {
     modal.classList.add('hidden');
-    transactionInputs.classList.add('hidden');
     console.log('Modal closed.');
 });
 
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
-    const currency = activeCurrency || currencySelect.value; // Handle active tab or dropdown selection
-    const currencyName = portfolios.get(currency)?.name || currency;
+    const currency = currencySelect.value;
+    const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
@@ -67,13 +64,13 @@ addTransactionButton.addEventListener('click', () => {
         return;
     }
 
-    const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
+    const type = document.querySelector('input[name="transaction-type"]:checked').value;
     let portfolio = portfolios.get(currency);
 
     // Create the portfolio if it doesn't exist
     if (!portfolio) {
         portfolio = createPortfolio(currency, currencyName);
-        addCoinToOwnedPanel(currency, currencyName); // Add the coin to the panel
+        addCoinToOwnedPanel(currency, currencyName); // Add coin button to the Owned Coins panel
     }
 
     const quantity = type === 'buy' ? amount / price : amount;
@@ -95,7 +92,6 @@ addTransactionButton.addEventListener('click', () => {
     updateDashboard(currency);
 
     modal.classList.add('hidden');
-    transactionInputs.classList.add('hidden');
     console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
 
@@ -111,7 +107,7 @@ function createPortfolio(currency, currencyName) {
     return portfolio;
 }
 
-// Add a coin button to the "Owned Coins" panel
+// Add coin button to the "Owned Coins" panel
 function addCoinToOwnedPanel(currency, currencyName) {
     const button = document.createElement('button');
     button.className = 'coin-button';
@@ -121,7 +117,7 @@ function addCoinToOwnedPanel(currency, currencyName) {
         activeCurrency = currency;
         const portfolio = portfolios.get(currency);
         updateTransactionTable(portfolio);
-        updateDashboard(portfolio);
+        updateDashboard(currency);
         console.log(`Switched to portfolio: ${currencyName}`);
     });
 

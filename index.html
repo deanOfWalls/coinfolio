@@ -21,16 +21,16 @@
                 <p><strong>Total Profit/Loss:</strong> <span id="profit-loss">-</span></p>
             </div>
         </section>
-        
+
         <!-- Owned Coins Panel -->
-        <section id="owned-coins">
-            <h2>Owned Coins</h2>
-            <div id="owned-coins-panel"></div> <!-- This is where the buttons for owned coins will appear -->
+        <section id="owned-coins-panel">
+            <h3>Owned Coins</h3>
+            <!-- Dynamically added buttons for owned coins will appear here -->
         </section>
 
         <!-- Transactions Table -->
         <section id="transactions">
-            <h2>Transactions</h2>
+            <h3>Transactions</h3>
             <table>
                 <thead>
                     <tr>
@@ -42,15 +42,17 @@
                         <th>Total</th>
                     </tr>
                 </thead>
-                <tbody id="transaction-table"></tbody>
+                <tbody id="transaction-table">
+                    <!-- Transaction rows will appear here -->
+                </tbody>
             </table>
         </section>
 
-        <!-- Add Transaction Button -->
+        <!-- Add Record Button -->
         <button id="open-modal">+ Add Transaction</button>
     </main>
 
-    <!-- Modal for Adding Transactions -->
+    <!-- Modal for Adding Cryptocurrency -->
     <div id="modal" class="hidden">
         <div class="modal-content">
             <h3>Add Transaction</h3>
@@ -58,18 +60,24 @@
             <select id="currency-select">
                 <option value="">Loading...</option>
             </select>
-            <div id="transaction-inputs" class="hidden">
-                <div>
-                    <input type="radio" id="buy-radio" name="transaction-type" value="buy" checked>
-                    <label for="buy-radio">Buy</label>
-                    <input type="radio" id="sell-radio" name="transaction-type" value="sell">
-                    <label for="sell-radio">Sell</label>
-                </div>
+
+            <label>
+                <input type="radio" name="transaction-type" value="buy" checked>
+                Buy
+            </label>
+            <label>
+                <input type="radio" name="transaction-type" value="sell">
+                Sell
+            </label>
+
+            <div id="transaction-inputs">
                 <label id="price-label">Buy Price per Coin:</label>
                 <input type="number" id="price-input" placeholder="Enter price per coin">
+
                 <label id="amount-label">USD to Spend:</label>
                 <input type="number" id="amount-input" placeholder="Enter amount">
             </div>
+
             <button id="add-transaction">Add</button>
             <button id="close-modal">Cancel</button>
         </div>
