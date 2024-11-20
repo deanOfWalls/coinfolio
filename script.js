@@ -179,7 +179,7 @@ function updateDashboard(portfolio) {
             totalCoins += tx.quantity;
             totalSpent += tx.amount;
             totalFees += tx.fees;
-        } else {
+        } else if (tx.type === 'sell') {
             totalCoins -= tx.quantity;
             profitLoss += tx.total - tx.fees;
             totalFees += tx.fees;
