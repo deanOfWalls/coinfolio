@@ -14,6 +14,41 @@ const dashboard = {
 // Fee Rates
 const defaultFeeRate = 0.004; // 0.40% taker fee
 
+// Fetch and populate Kraken's currency list
+async function fetchAndPopulateCurrencies() {
+    try {
+        const response = await fetch('https://api.kraken.com/0/public/AssetPairs');
+        const data = await response.json();
+        if (data.error && data.error.length) {
+            console.error("API Error:", data.error);
+            return;
+        }
+
+        const assetPairs = data.result;
+        const currencies = new Map();
+
+        // Extract unique base currencies and clean their names
+        for (const pair in assetPairs) {
+            const base = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken abbreviation
+            const name = fallbackCurrencyNames[base] || base; // Fallback if Kraken doesn't provide a name
+            currencies.set(base, name);
+        }
+
+        // Populate the dropdown
+        currencySelect.innerHTML = '';
+        Array.from(currencies.entries())
+            .sort((a, b) => a[1].localeCompare(b[1]))
+            .forEach(([code, name]) => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = `${name} (${code})`;
+                currencySelect.appendChild(option);
+            });
+    } catch (error) {
+        console.error("Failed to fetch Kraken currencies:", error);
+    }
+}
+
 // Event listeners for modal
 newCoinButton.addEventListener('click', () => {
     modal.classList.remove('hidden');
@@ -25,19 +60,20 @@ closeModalButton.addEventListener('click', () => {
 
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
-    addNewTab(currency);
+    const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
+    addNewTab(currency, currencyName);
     modal.classList.add('hidden');
 });
 
 // Add a new tab for a cryptocurrency
-function addNewTab(currency) {
+function addNewTab(currency, currencyName) {
     const tab = document.createElement('div');
     tab.className = 'tab';
-    tab.textContent = currency;
+    tab.textContent = currencyName;
     tabsContainer.appendChild(tab);
 
     // Create the portfolio section for this cryptocurrency
-    const portfolioSection = createPortfolioSection(currency);
+    const portfolioSection = createPortfolioSection(currency, currencyName);
     document.body.appendChild(portfolioSection);
 
     tab.addEventListener('click', () => {
@@ -49,12 +85,11 @@ function addNewTab(currency) {
 }
 
 // Create portfolio section for a cryptocurrency
-function createPortfolioSection(currency) {
+function createPortfolioSection(currency, currencyName) {
     const section = document.createElement('div');
-    section.className = 'portfolio-section';
-    section.classList.add('hidden');
+    section.className = 'portfolio-section hidden';
     section.innerHTML = `
-        <h3>${currency} Portfolio</h3>
+        <h3>${currencyName} Portfolio</h3>
         <div class="transaction-input">
             <label for="transaction-type">Transaction Type:</label>
             <select id="transaction-type" class="transaction-type">
@@ -88,7 +123,6 @@ function createPortfolioSection(currency) {
         </table>
     `;
 
-    // Event handlers for transaction inputs
     const transactionType = section.querySelector('#transaction-type');
     const priceLabel = section.querySelector('#price-label');
     const usdLabel = section.querySelector('#usd-label');
@@ -158,7 +192,6 @@ function createPortfolioSection(currency) {
         `;
         tbody.appendChild(row);
 
-        // Add remove functionality
         row.querySelector('.remove-btn').addEventListener('click', () => {
             tbody.removeChild(row);
             if (type === 'buy') {
@@ -185,3 +218,6 @@ function updateDashboard() {
     document.getElementById('total-fees').textContent = dashboard.totalFees.toFixed(2);
     document.getElementById('profit-loss').textContent = dashboard.profitLoss.toFixed(2);
 }
+
+// Initialize app
+fetchAndPopulateCurrencies();
