@@ -14,6 +14,17 @@ const dashboard = {
     profitLoss: 0,
 };
 
+// Fallback mapping for common cryptocurrency names
+const fallbackCurrencyNames = {
+    XDG: "Dogecoin",
+    BTC: "Bitcoin",
+    ETH: "Ethereum",
+    XRP: "Ripple",
+    LTC: "Litecoin",
+    ADA: "Cardano",
+    // Add more as needed
+};
+
 // Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.add('hidden'); // Hide modal by default
@@ -60,22 +71,23 @@ async function populateCurrencyDropdown() {
         }
 
         const assetPairs = data.result;
-        const currencies = new Set();
+        const currencies = new Map();
 
-        // Extract unique base currencies
+        // Extract unique base currencies and map their names
         for (const pair in assetPairs) {
-            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken's naming
-            currencies.add(baseCurrency);
+            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken's symbols
+            const name = fallbackCurrencyNames[baseCurrency] || baseCurrency; // Use fallback name or symbol
+            currencies.set(baseCurrency, name);
         }
 
         // Populate the dropdown
         currencySelect.innerHTML = ''; // Clear existing options
-        Array.from(currencies)
-            .sort()
-            .forEach((currency) => {
+        Array.from(currencies.entries())
+            .sort((a, b) => a[1].localeCompare(b[1])) // Sort by name
+            .forEach(([code, name]) => {
                 const option = document.createElement('option');
-                option.value = currency;
-                option.textContent = currency; // For now, use just the symbol
+                option.value = code;
+                option.textContent = `${name} (${code})`; // Full name with symbol
                 currencySelect.appendChild(option);
             });
 
@@ -116,20 +128,18 @@ function createPortfolioSection(currency, currencyName) {
         <h3>${currencyName} Portfolio</h3>
         <div class="transaction-input">
             <label for="transaction-type">Transaction Type:</label>
-            <select id="transaction-type" class="transaction-type">
+            <select class="transaction-type">
                 <option value="buy">Buy</option>
                 <option value="sell">Sell</option>
             </select>
 
-            <label id="price-label">Buy Price per Coin:</label>
-            <input type="number" id="price" placeholder="Enter price per coin">
+            <label class="price-label">Buy Price per Coin:</label>
+            <input type="number" class="price-input" placeholder="Enter price per coin">
 
-            <label id="usd-label">USD to Spend:</label>
-            <input type="number" id="usdAmount" placeholder="Enter amount">
+            <label class="amount-label">USD to Spend:</label>
+            <input type="number" class="amount-input" placeholder="Enter amount">
 
-            <button id="max-coins" class="hidden">Max</button>
-
-            <button id="add-transaction">Add Transaction</button>
+            <button class="add-transaction">Add Transaction</button>
         </div>
         <table>
             <thead>
@@ -147,30 +157,91 @@ function createPortfolioSection(currency, currencyName) {
         </table>
     `;
 
-    const transactionType = section.querySelector('#transaction-type');
-    const priceLabel = section.querySelector('#price-label');
-    const usdLabel = section.querySelector('#usd-label');
-    const maxButton = section.querySelector('#max-coins');
-    const priceInput = section.querySelector('#price');
-    const usdInput = section.querySelector('#usdAmount');
+    // Transaction Type Change Logic
+    const transactionType = section.querySelector('.transaction-type');
+    const priceLabel = section.querySelector('.price-label');
+    const amountLabel = section.querySelector('.amount-label');
 
-    // Update form dynamically based on transaction type
     transactionType.addEventListener('change', () => {
         if (transactionType.value === 'sell') {
             priceLabel.textContent = 'Sell Price per Coin:';
-            usdLabel.textContent = 'Number of Coins:';
-            maxButton.classList.remove('hidden');
+            amountLabel.textContent = 'Number of Coins to Sell:';
         } else {
             priceLabel.textContent = 'Buy Price per Coin:';
-            usdLabel.textContent = 'USD to Spend:';
-            maxButton.classList.add('hidden');
+            amountLabel.textContent = 'USD to Spend:';
         }
     });
 
-    // Max coins button for sell transactions
-    maxButton.addEventListener('click', () => {
-        usdInput.value = dashboard.totalCoins.toFixed(4); // Set to total coins
+    // Add Transaction Logic
+    section.querySelector('.add-transaction').addEventListener('click', () => {
+        const type = transactionType.value;
+        const price = parseFloat(section.querySelector('.price-input').value);
+        const amount = parseFloat(section.querySelector('.amount-input').value);
+
+        if (isNaN(price) || isNaN(amount) || price <= 0 || amount <= 0) {
+            alert("Please enter valid inputs.");
+            return;
+        }
+
+        const quantity = type === 'buy' ? amount / price : amount; // Quantity for buy or sell
+        const fees = amount * 0.004; // Example: 0.40% fee
+        const total = type === 'buy' ? amount + fees : amount - fees;
+
+        if (type === 'sell' && quantity > dashboard.totalCoins) {
+            alert("You cannot sell more coins than you own.");
+            return;
+        }
+
+        // Update Dashboard KPIs
+        if (type === 'buy') {
+            dashboard.totalCoins += quantity;
+            dashboard.totalSpent += amount;
+        } else {
+            dashboard.totalCoins -= quantity;
+            dashboard.profitLoss += amount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
+        }
+        dashboard.totalFees += fees;
+
+        updateDashboard();
+
+        // Add transaction to the table
+        const tbody = section.querySelector('tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${type}</td>
+            <td>${price.toFixed(2)}</td>
+            <td>${amount.toFixed(2)}</td>
+            <td>${quantity.toFixed(4)}</td>
+            <td>${fees.toFixed(2)}</td>
+            <td>${total.toFixed(2)}</td>
+            <td><button class="remove-btn">Remove</button></td>
+        `;
+        tbody.appendChild(row);
+
+        // Remove transaction logic
+        row.querySelector('.remove-btn').addEventListener('click', () => {
+            tbody.removeChild(row);
+            if (type === 'buy') {
+                dashboard.totalCoins -= quantity;
+                dashboard.totalSpent -= amount;
+            } else {
+                dashboard.totalCoins += quantity;
+                dashboard.profitLoss -= amount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
+            }
+            dashboard.totalFees -= fees;
+            updateDashboard();
+        });
     });
 
     return section;
+}
+
+// Update dashboard KPIs
+function updateDashboard() {
+    document.getElementById('average-price').textContent = dashboard.totalCoins > 0
+        ? (dashboard.totalSpent / dashboard.totalCoins).toFixed(2)
+        : '-';
+    document.getElementById('total-coins').textContent = dashboard.totalCoins.toFixed(4);
+    document.getElementById('total-fees').textContent = dashboard.totalFees.toFixed(2);
+    document.getElementById('profit-loss').textContent = dashboard.profitLoss.toFixed(2);
 }
