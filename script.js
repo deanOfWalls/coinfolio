@@ -7,7 +7,7 @@ const currencySelect = document.getElementById('currency-select'); // Dropdown f
 const tabsContainer = document.getElementById('tabs'); // Tabs container
 const portfolioContainer = document.getElementById('portfolio-container'); // Portfolio container
 
-// Dashboard state (for all currencies combined)
+// Dashboard state
 const dashboard = {
     totalCoins: 0,
     totalSpent: 0,
@@ -49,7 +49,7 @@ closeModalButton.addEventListener('click', () => {
     console.log('Modal closed.');
 });
 
-// Add cryptocurrency to the portfolio
+// Add cryptocurrency
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
