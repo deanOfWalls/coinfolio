@@ -22,13 +22,14 @@
             </div>
         </section>
 
-        <!-- Coin Panel for Switching Coins -->
-        <section id="coin-panel" class="coin-panel">
-            <!-- Buttons for each coin will be dynamically added here -->
+        <!-- Coin Buttons Panel -->
+        <section id="coin-panel">
+            <h3>Coins:</h3>
+            <div id="coin-buttons"></div>
         </section>
 
-        <!-- Transactions Table -->
-        <section id="transaction-table">
+        <!-- Transactions Section -->
+        <section id="transactions">
             <table>
                 <thead>
                     <tr>
@@ -44,34 +45,29 @@
             </table>
         </section>
 
-        <button id="open-modal">+ Add Transaction</button>
-    </main>
-
-    <!-- Modal for Adding Transactions -->
-    <div id="modal" class="hidden">
-        <div class="modal-content">
-            <h3>Add Transaction</h3>
-            <label for="currency-select">Select Currency:</label>
-            <select id="currency-select">
-                <option value="">Loading...</option>
-            </select>
-
-            <div id="transaction-inputs" class="hidden">
-                <button id="buy-button">Buy</button>
-                <button id="sell-button">Sell</button>
-                <label id="price-label">Price per Coin:</label>
-                <input type="number" id="price-input" placeholder="Enter price">
-                <label id="amount-label">Amount:</label>
-                <input type="number" id="amount-input" placeholder="Enter amount">
-            </div>
-
-            <div class="modal-actions">
-                <button id="add-transaction">Add</button>
+        <!-- Modal for Adding Transactions -->
+        <div id="modal" class="hidden">
+            <div class="modal-content">
+                <h3>Add Transaction</h3>
+                <label for="currency-select">Select Currency:</label>
+                <select id="currency-select">
+                    <option value="">Loading...</option>
+                </select>
+                <div id="transaction-type">
+                    <button id="buy-button">Buy</button>
+                    <button id="sell-button">Sell</button>
+                </div>
+                <div id="transaction-inputs" class="hidden">
+                    <label id="price-label"></label>
+                    <input type="number" id="price-input" placeholder="Enter price per coin">
+                    <label id="amount-label"></label>
+                    <input type="number" id="amount-input" placeholder="Enter amount">
+                    <button id="add-transaction">Add</button>
+                </div>
                 <button id="close-modal">Cancel</button>
             </div>
         </div>
-    </div>
-
+    </main>
     <script src="script.js"></script>
 </body>
 </html>
