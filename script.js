@@ -77,6 +77,7 @@ sellButton.addEventListener('click', () => {
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
     const currency = currencySelect.value;
+    const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
@@ -85,10 +86,10 @@ addTransactionButton.addEventListener('click', () => {
         return;
     }
 
-    // Ensure the portfolio exists
+    // Check if the portfolio exists, if not, create it
     if (!portfolios.has(currency)) {
-        alert('Portfolio not found for this currency. Please add it first.');
-        return;
+        console.log(`Portfolio for ${currencyName} does not exist. Creating...`);
+        createPortfolio(currency, currencyName);
     }
 
     const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
@@ -117,8 +118,8 @@ addTransactionButton.addEventListener('click', () => {
     console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
 
-// Add a new cryptocurrency tab and portfolio
-function addNewTab(currency, currencyName) {
+// Create a portfolio for a cryptocurrency
+function createPortfolio(currency, currencyName) {
     // Create a new tab
     const tab = document.createElement('div');
     tab.className = 'tab';
@@ -126,7 +127,24 @@ function addNewTab(currency, currencyName) {
     tabsContainer.appendChild(tab);
 
     // Create a new portfolio section
-    const portfolioSection = createPortfolioSection(currency, currencyName);
+    const portfolioSection = document.createElement('div');
+    portfolioSection.className = 'portfolio-section hidden';
+    portfolioSection.innerHTML = `
+        <h3>${currencyName} Portfolio</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>USD</th>
+                    <th>Quantity</th>
+                    <th>Fees</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    `;
 
     // Initialize portfolio data
     const portfolio = {
@@ -146,30 +164,7 @@ function addNewTab(currency, currencyName) {
         portfolioSection.classList.remove('hidden');
     });
 
-    console.log(`Tab and portfolio created for ${currencyName}`);
-}
-
-// Create portfolio section for a cryptocurrency
-function createPortfolioSection(currency, currencyName) {
-    const section = document.createElement('div');
-    section.className = 'portfolio-section hidden';
-    section.innerHTML = `
-        <h3>${currencyName} Portfolio</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Price</th>
-                    <th>USD</th>
-                    <th>Quantity</th>
-                    <th>Fees</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    `;
-    return section;
+    console.log(`Portfolio created for ${currencyName}`);
 }
 
 // Update the transaction table
