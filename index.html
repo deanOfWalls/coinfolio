@@ -21,20 +21,33 @@
                 <p><strong>Total Profit/Loss:</strong> <span id="profit-loss">-</span></p>
             </div>
         </section>
-        
-        <!-- Tabs for Cryptocurrencies -->
-        <section id="portfolio">
-            <div id="tabs-container">
-                <div id="tabs"></div>
-            </div>
-            <div id="portfolio-container">
-                <!-- Individual portfolio sections will render here -->
-            </div>
-            <button id="open-modal">+ Add Transaction</button>
+
+        <!-- Coin Panel for Switching Coins -->
+        <section id="coin-panel" class="coin-panel">
+            <!-- Buttons for each coin will be dynamically added here -->
         </section>
+
+        <!-- Transactions Table -->
+        <section id="transaction-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Price</th>
+                        <th>USD</th>
+                        <th>Quantity</th>
+                        <th>Fees</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <button id="open-modal">+ Add Transaction</button>
     </main>
 
-    <!-- Modal for Adding Transaction -->
+    <!-- Modal for Adding Transactions -->
     <div id="modal" class="hidden">
         <div class="modal-content">
             <h3>Add Transaction</h3>
@@ -43,23 +56,19 @@
                 <option value="">Loading...</option>
             </select>
 
-            <div class="transaction-actions">
+            <div id="transaction-inputs" class="hidden">
                 <button id="buy-button">Buy</button>
                 <button id="sell-button">Sell</button>
-            </div>
-
-            <!-- Dynamic input fields -->
-            <div id="transaction-inputs" class="hidden">
                 <label id="price-label">Price per Coin:</label>
-                <input type="number" id="price-input" placeholder="Enter price per coin">
-
+                <input type="number" id="price-input" placeholder="Enter price">
                 <label id="amount-label">Amount:</label>
                 <input type="number" id="amount-input" placeholder="Enter amount">
-
-                <button id="add-transaction">Add</button>
             </div>
 
-            <button id="close-modal">Cancel</button>
+            <div class="modal-actions">
+                <button id="add-transaction">Add</button>
+                <button id="close-modal">Cancel</button>
+            </div>
         </div>
     </div>
 
