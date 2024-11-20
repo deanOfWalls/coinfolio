@@ -1,13 +1,13 @@
 // Select elements
-const newCoinButton = document.getElementById('open-modal');
-const closeModalButton = document.getElementById('close-modal');
-const addCoinButton = document.getElementById('add-coin');
-const modal = document.getElementById('modal');
-const currencySelect = document.getElementById('currency-select');
-const tabsContainer = document.getElementById('tabs');
-const portfolioContainer = document.getElementById('portfolio-container');
+const newCoinButton = document.getElementById('open-modal'); // Button to open modal
+const closeModalButton = document.getElementById('close-modal'); // Cancel button
+const addCoinButton = document.getElementById('add-coin'); // Add button in modal
+const modal = document.getElementById('modal'); // Modal container
+const currencySelect = document.getElementById('currency-select'); // Dropdown for currencies
+const tabsContainer = document.getElementById('tabs'); // Tabs container
+const portfolioContainer = document.getElementById('portfolio-container'); // Portfolio container
 
-// Dashboard state
+// Dashboard state (for all currencies combined)
 const dashboard = {
     totalCoins: 0,
     totalSpent: 0,
@@ -31,20 +31,25 @@ const fallbackCurrencyNames = {
 // Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.add('hidden'); // Hide modal by default
+    console.log('Modal hidden on page load.');
+
+    // Populate the cryptocurrency dropdown
     await populateCurrencyDropdown();
 });
 
 // Show modal
 newCoinButton.addEventListener('click', () => {
     modal.classList.remove('hidden'); // Show modal
+    console.log('Modal shown.');
 });
 
 // Hide modal
 closeModalButton.addEventListener('click', () => {
     modal.classList.add('hidden'); // Hide modal
+    console.log('Modal closed.');
 });
 
-// Add cryptocurrency
+// Add cryptocurrency to the portfolio
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
@@ -61,6 +66,7 @@ addCoinButton.addEventListener('click', () => {
     }
 
     modal.classList.add('hidden'); // Hide modal
+    console.log(`Added cryptocurrency: ${currencyName}`);
 });
 
 // Populate dropdown with cryptocurrencies
@@ -92,6 +98,8 @@ async function populateCurrencyDropdown() {
                 option.textContent = `${name} (${code})`;
                 currencySelect.appendChild(option);
             });
+
+        console.log('Dropdown populated with currencies.');
     } catch (error) {
         console.error("Failed to fetch Kraken currencies:", error);
     }
@@ -115,6 +123,8 @@ function addNewTab(currency, currencyName) {
         });
         portfolioSection.classList.remove('hidden');
     });
+
+    console.log(`Tab and portfolio added for ${currencyName}`);
 }
 
 // Create portfolio section
