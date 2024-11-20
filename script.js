@@ -1,9 +1,11 @@
-const newCoinButton = document.getElementById('new-coin-button'); // Add Transaction Button
+const newCoinButton = document.getElementById('new-coin-button'); // Add Cryptocurrency Button
 const modal = document.getElementById('modal'); // Modal Container
-const closeModalButton = document.getElementById('close-modal'); // Modal Cancel Button
-const addCoinButton = document.getElementById('add-coin'); // Modal Add Button
-const currencySelect = document.getElementById('currency-select'); // Dropdown for Cryptocurrency
+const closeModalButton = document.getElementById('close-modal'); // Cancel Button
+const addCoinButton = document.getElementById('add-coin'); // Add Cryptocurrency Modal Button
+const currencySelect = document.getElementById('currency-select'); // Dropdown for Cryptocurrencies
 const tabsContainer = document.getElementById('tabs'); // Tabs Container
+
+// Global dashboard state
 const dashboard = {
     totalCoins: 0,
     totalSpent: 0,
@@ -14,11 +16,22 @@ const dashboard = {
 // Fee Rates
 const defaultFeeRate = 0.004; // 0.40% taker fee
 
+// Fallback mapping for coin names
+const fallbackCurrencyNames = {
+    XDG: "Dogecoin",
+    BTC: "Bitcoin",
+    ETH: "Ethereum",
+    XRP: "Ripple",
+    LTC: "Litecoin",
+    // Add more fallback mappings as needed
+};
+
 // Fetch and populate Kraken's currency list
 async function fetchAndPopulateCurrencies() {
     try {
         const response = await fetch('https://api.kraken.com/0/public/AssetPairs');
         const data = await response.json();
+
         if (data.error && data.error.length) {
             console.error("API Error:", data.error);
             return;
@@ -30,14 +43,14 @@ async function fetchAndPopulateCurrencies() {
         // Extract unique base currencies and clean their names
         for (const pair in assetPairs) {
             const base = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken abbreviation
-            const name = base; // Placeholder for actual names (Kraken API doesn't provide names directly)
+            const name = fallbackCurrencyNames[base] || base; // Use fallback or default to abbreviation
             currencies.set(base, name);
         }
 
         // Populate the dropdown
-        currencySelect.innerHTML = '';
+        currencySelect.innerHTML = ''; // Clear existing options
         Array.from(currencies.entries())
-            .sort((a, b) => a[0].localeCompare(b[0]))
+            .sort((a, b) => a[1].localeCompare(b[1])) // Sort by name
             .forEach(([code, name]) => {
                 const option = document.createElement('option');
                 option.value = code;
@@ -49,20 +62,20 @@ async function fetchAndPopulateCurrencies() {
     }
 }
 
-// Event listeners for modal
+// Modal control logic
 newCoinButton.addEventListener('click', () => {
-    modal.classList.remove('hidden'); // Show the modal
+    modal.classList.remove('hidden'); // Show modal
 });
 
 closeModalButton.addEventListener('click', () => {
-    modal.classList.add('hidden'); // Hide the modal
+    modal.classList.add('hidden'); // Hide modal
 });
 
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
     addNewTab(currency, currencyName);
-    modal.classList.add('hidden'); // Hide the modal after adding
+    modal.classList.add('hidden'); // Hide modal after adding
 });
 
 // Add a new tab for a cryptocurrency
@@ -123,7 +136,29 @@ function createPortfolioSection(currency, currencyName) {
         </table>
     `;
 
-    // Add logic for buy/sell and transaction handling here
+    const transactionType = section.querySelector('#transaction-type');
+    const priceLabel = section.querySelector('#price-label');
+    const usdLabel = section.querySelector('#usd-label');
+    const maxButton = section.querySelector('#max-coins');
+    const priceInput = section.querySelector('#price');
+    const usdInput = section.querySelector('#usdAmount');
+
+    transactionType.addEventListener('change', () => {
+        if (transactionType.value === 'sell') {
+            priceLabel.textContent = 'Sell Price per Coin:';
+            usdLabel.textContent = 'Number of Coins:';
+            maxButton.classList.remove('hidden');
+        } else {
+            priceLabel.textContent = 'Buy Price per Coin:';
+            usdLabel.textContent = 'USD to Spend:';
+            maxButton.classList.add('hidden');
+        }
+    });
+
+    maxButton.addEventListener('click', () => {
+        usdInput.value = dashboard.totalCoins.toFixed(4);
+    });
+
     return section;
 }
 
@@ -139,3 +174,4 @@ function updateDashboard() {
 
 // Initialize app
 fetchAndPopulateCurrencies();
+modal.classList.add('hidden'); // Ensure modal is hidden on load
