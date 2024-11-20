@@ -20,7 +20,7 @@ const dashboardElements = {
     profitLoss: document.getElementById('profit-loss'),
 };
 
-// Dashboard state
+// State management
 let activeCurrency = null; // Currently selected coin
 const portfolios = new Map(); // Map to track individual portfolios for cryptocurrencies
 
@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Show modal
 newCoinButton.addEventListener('click', () => {
     modal.classList.remove('hidden');
+    transactionInputs.classList.add('hidden'); // Hide inputs until a transaction type is selected
     console.log('Modal shown.');
 });
 
@@ -62,6 +63,8 @@ buyButton.addEventListener('click', () => {
     transactionInputs.classList.remove('hidden');
     priceLabel.textContent = 'Buy Price per Coin:';
     amountLabel.textContent = 'USD to Spend:';
+    priceInput.value = '';
+    amountInput.value = '';
     console.log('Buy inputs displayed.');
 });
 
@@ -70,13 +73,15 @@ sellButton.addEventListener('click', () => {
     transactionInputs.classList.remove('hidden');
     priceLabel.textContent = 'Sell Price per Coin:';
     amountLabel.textContent = 'Number of Coins to Sell:';
+    priceInput.value = '';
+    amountInput.value = '';
     console.log('Sell inputs displayed.');
 });
 
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
-    const currency = activeCurrency || currencySelect.value; // Handle active tab or dropdown selection
-    const currencyName = portfolios.get(currency)?.name || currency;
+    const currency = activeCurrency || currencySelect.value;
+    const currencyName = portfolios.get(currency)?.name || currencySelect.options[currencySelect.selectedIndex].text;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
