@@ -131,13 +131,6 @@ function createPortfolio(currency, currencyName) {
 
 // Add a coin button to the panel
 function addCoinToPanel(currency, currencyName) {
-    const coinPanel = document.getElementById('coin-panel'); // Ensure the panel exists
-
-    if (!coinPanel) {
-        console.error('Coin panel not found!');
-        return;
-    }
-
     const button = document.createElement('button');
     button.className = 'coin-button';
     button.textContent = currency; // Display coin symbol (e.g., BTC, XDG)
@@ -153,7 +146,6 @@ function addCoinToPanel(currency, currencyName) {
     coinPanel.appendChild(button);
     console.log(`Coin button added for ${currencyName}`);
 }
-
 
 // Update the transaction table
 function updateTransactionTable(portfolio) {
