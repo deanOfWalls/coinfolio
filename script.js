@@ -1,11 +1,11 @@
 // Select elements
-const newCoinButton = document.getElementById('open-modal'); // Button to open modal
-const closeModalButton = document.getElementById('close-modal'); // Cancel button
-const addCoinButton = document.getElementById('add-coin'); // Add button in modal
-const modal = document.getElementById('modal'); // Modal container
-const currencySelect = document.getElementById('currency-select'); // Dropdown for currencies
-const tabsContainer = document.getElementById('tabs'); // Tabs container
-const portfolioContainer = document.getElementById('portfolio-container'); // Portfolio container
+const newCoinButton = document.getElementById('open-modal');
+const closeModalButton = document.getElementById('close-modal');
+const addCoinButton = document.getElementById('add-coin');
+const modal = document.getElementById('modal');
+const currencySelect = document.getElementById('currency-select');
+const tabsContainer = document.getElementById('tabs');
+const portfolioContainer = document.getElementById('portfolio-container');
 
 // Dashboard state
 const dashboard = {
@@ -49,7 +49,7 @@ closeModalButton.addEventListener('click', () => {
     console.log('Modal closed.');
 });
 
-// Add cryptocurrency
+// Add cryptocurrency to the portfolio
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
@@ -130,7 +130,7 @@ function addNewTab(currency, currencyName) {
 // Create portfolio section
 function createPortfolioSection(currency, currencyName) {
     const section = document.createElement('div');
-    section.className = 'portfolio-section hidden';
+    section.className = 'portfolio-section hidden'; // Hidden by default
     section.innerHTML = `
         <h3>${currencyName} Portfolio</h3>
         <div class="transaction-input">
@@ -164,6 +164,7 @@ function createPortfolioSection(currency, currencyName) {
         </table>
     `;
 
+    // Handle transaction type changes
     const transactionType = section.querySelector('.transaction-type');
     const priceLabel = section.querySelector('.price-label');
     const amountLabel = section.querySelector('.amount-label');
