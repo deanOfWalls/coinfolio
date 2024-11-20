@@ -69,18 +69,31 @@ sellButton.addEventListener('click', () => {
 
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
-    const currency = activeCurrency;
+    const currency = activeCurrency || currencySelect.value; // Handle active tab or dropdown selection
     const currencyName = portfolios.get(currency)?.name || currency;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
-    if (!currency || isNaN(price) || isNaN(amount)) {
-        alert('Please fill in all fields.');
+    console.log(`Adding transaction for currency: ${currency}`);
+    console.log(`Price Input: ${price}, Amount Input: ${amount}`);
+
+    if (!currency) {
+        alert('Please select a cryptocurrency.');
+        return;
+    }
+
+    if (isNaN(price) || price <= 0) {
+        alert('Please enter a valid price.');
+        return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+        alert('Please enter a valid amount.');
         return;
     }
 
     const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
-    const portfolio = portfolios.get(currency);
+    const portfolio = portfolios.get(currency) || createPortfolio(currency, currencyName);
 
     const quantity = type === 'buy' ? amount / price : amount;
     const fees = type === 'buy' ? amount * 0.004 : (quantity * price) * 0.004;
@@ -104,6 +117,7 @@ addTransactionButton.addEventListener('click', () => {
     transactionInputs.classList.add('hidden');
     console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
+
 
 // Create a portfolio for a cryptocurrency
 function createPortfolio(currency, currencyName) {
