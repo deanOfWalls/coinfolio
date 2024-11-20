@@ -11,8 +11,8 @@ const amountLabel = document.getElementById('amount-label');
 const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
 const currencySelect = document.getElementById('currency-select');
-const coinPanel = document.getElementById('coin-panel');
-const transactionTable = document.querySelector('table tbody');
+const coinPanel = document.getElementById('coin-panel'); // Panel for coin buttons
+const transactionTable = document.querySelector('table tbody'); // Transaction table
 const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
     totalCoins: document.getElementById('total-coins'),
@@ -20,7 +20,7 @@ const dashboardElements = {
     profitLoss: document.getElementById('profit-loss'),
 };
 
-// State management
+// Dashboard state
 let activeCurrency = null; // Currently selected coin
 const portfolios = new Map(); // Map to track individual portfolios for cryptocurrencies
 
@@ -50,6 +50,7 @@ newCoinButton.addEventListener('click', () => {
     transactionInputs.classList.add('hidden'); // Hide inputs until a transaction type is selected
     priceInput.value = '';
     amountInput.value = '';
+    activeCurrency = null; // Clear any active selection
     console.log('Modal shown.');
 });
 
@@ -87,7 +88,6 @@ addTransactionButton.addEventListener('click', () => {
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
-    // Check for empty fields
     if (!currency || isNaN(price) || isNaN(amount)) {
         alert('Please fill in all fields.');
         return;
