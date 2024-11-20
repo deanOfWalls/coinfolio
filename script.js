@@ -5,26 +5,21 @@ const addCoinButton = document.getElementById('add-coin'); // Add Cryptocurrency
 const currencySelect = document.getElementById('currency-select'); // Dropdown for Cryptocurrencies
 const tabsContainer = document.getElementById('tabs'); // Tabs Container
 
-// Global dashboard state
-const dashboard = {
-    totalCoins: 0,
-    totalSpent: 0,
-    totalFees: 0,
-    profitLoss: 0,
-};
-
 // Fee Rates
 const defaultFeeRate = 0.004; // 0.40% taker fee
 
-// Fallback mapping for coin names
-const fallbackCurrencyNames = {
-    XDG: "Dogecoin",
-    BTC: "Bitcoin",
-    ETH: "Ethereum",
-    XRP: "Ripple",
-    LTC: "Litecoin",
-    // Add more fallback mappings as needed
-};
+// Ensure the modal is hidden on page load
+modal.classList.add('hidden');
+
+// Show the modal when "Add Transaction" is clicked
+newCoinButton.addEventListener('click', () => {
+    modal.classList.remove('hidden'); // Show modal
+});
+
+// Hide the modal when "Cancel" is clicked
+closeModalButton.addEventListener('click', () => {
+    modal.classList.add('hidden'); // Hide modal
+});
 
 // Fetch and populate Kraken's currency list
 async function fetchAndPopulateCurrencies() {
@@ -43,7 +38,7 @@ async function fetchAndPopulateCurrencies() {
         // Extract unique base currencies and clean their names
         for (const pair in assetPairs) {
             const base = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken abbreviation
-            const name = fallbackCurrencyNames[base] || base; // Use fallback or default to abbreviation
+            const name = base; // Use base code as fallback
             currencies.set(base, name);
         }
 
@@ -62,41 +57,20 @@ async function fetchAndPopulateCurrencies() {
     }
 }
 
-// Modal control logic
-newCoinButton.addEventListener('click', () => {
-    modal.classList.remove('hidden'); // Show modal
-});
-
-closeModalButton.addEventListener('click', () => {
-    modal.classList.add('hidden'); // Hide modal
-});
-
+// Add a new cryptocurrency tab
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
-    addNewTab(currency, currencyName);
-    modal.classList.add('hidden'); // Hide modal after adding
-});
 
-// Add a new tab for a cryptocurrency
-function addNewTab(currency, currencyName) {
+    // Create a new tab
     const tab = document.createElement('div');
     tab.className = 'tab';
     tab.textContent = currencyName;
     tabsContainer.appendChild(tab);
 
-    // Create the portfolio section for this cryptocurrency
-    const portfolioSection = createPortfolioSection(currency, currencyName);
-    document.body.appendChild(portfolioSection);
+    // Hide the modal
+    modal.classList.add('hidden');
+});
 
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.portfolio-section').forEach((section) => {
-            section.classList.add('hidden');
-        });
-        portfolioSection.classList.remove('hidden');
-    });
-}
-
-// Initialize app
+// Initialize the app
 fetchAndPopulateCurrencies();
-modal.classList.add('hidden'); // Ensure modal is hidden on load
