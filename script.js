@@ -1,13 +1,13 @@
 // Select elements
-const newCoinButton = document.getElementById('open-modal'); // Button to open modal
-const closeModalButton = document.getElementById('close-modal'); // Cancel button
-const addCoinButton = document.getElementById('add-coin'); // Add button in modal
-const modal = document.getElementById('modal'); // Modal container
-const currencySelect = document.getElementById('currency-select'); // Dropdown for currencies
-const tabsContainer = document.getElementById('tabs'); // Tabs container
-const portfolioContainer = document.getElementById('portfolio-container'); // Portfolio container
+const newCoinButton = document.getElementById('open-modal');
+const closeModalButton = document.getElementById('close-modal');
+const addCoinButton = document.getElementById('add-coin');
+const modal = document.getElementById('modal');
+const currencySelect = document.getElementById('currency-select');
+const tabsContainer = document.getElementById('tabs');
+const portfolioContainer = document.getElementById('portfolio-container');
 
-// Dashboard state (for all currencies combined)
+// Dashboard state
 const dashboard = {
     totalCoins: 0,
     totalSpent: 0,
@@ -26,31 +26,25 @@ const fallbackCurrencyNames = {
     XRP: "Ripple",
     LTC: "Litecoin",
     ADA: "Cardano",
-    // Add more as needed
 };
 
 // Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.add('hidden'); // Hide modal by default
-    console.log('Modal hidden on page load.');
-
-    // Populate the cryptocurrency dropdown
     await populateCurrencyDropdown();
 });
 
-// Show modal to add a new cryptocurrency
+// Show modal
 newCoinButton.addEventListener('click', () => {
     modal.classList.remove('hidden'); // Show modal
-    console.log('Modal shown.');
 });
 
-// Hide modal when cancel is clicked
+// Hide modal
 closeModalButton.addEventListener('click', () => {
     modal.classList.add('hidden'); // Hide modal
-    console.log('Modal closed.');
 });
 
-// Add cryptocurrency to the portfolio
+// Add cryptocurrency
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
@@ -60,16 +54,13 @@ addCoinButton.addEventListener('click', () => {
         return;
     }
 
-    // Add a new tab and portfolio section
     if (!portfolios.has(currency)) {
         addNewTab(currency, currencyName);
     } else {
         alert("This cryptocurrency is already added.");
     }
 
-    // Hide modal
-    modal.classList.add('hidden');
-    console.log(`Added cryptocurrency: ${currencyName}`);
+    modal.classList.add('hidden'); // Hide modal
 });
 
 // Populate dropdown with cryptocurrencies
@@ -86,59 +77,47 @@ async function populateCurrencyDropdown() {
         const assetPairs = data.result;
         const currencies = new Map();
 
-        // Extract unique base currencies and map their names
         for (const pair in assetPairs) {
-            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken's symbols
-            const name = fallbackCurrencyNames[baseCurrency] || baseCurrency; // Use fallback name or symbol
+            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, '');
+            const name = fallbackCurrencyNames[baseCurrency] || baseCurrency;
             currencies.set(baseCurrency, name);
         }
 
-        // Populate the dropdown
         currencySelect.innerHTML = ''; // Clear existing options
         Array.from(currencies.entries())
-            .sort((a, b) => a[1].localeCompare(b[1])) // Sort by name
+            .sort((a, b) => a[1].localeCompare(b[1]))
             .forEach(([code, name]) => {
                 const option = document.createElement('option');
                 option.value = code;
-                option.textContent = `${name} (${code})`; // Full name with symbol
+                option.textContent = `${name} (${code})`;
                 currencySelect.appendChild(option);
             });
-
-        console.log('Dropdown populated with currencies.');
     } catch (error) {
         console.error("Failed to fetch Kraken currencies:", error);
     }
 }
 
-// Add a new tab and corresponding portfolio section
+// Add a new tab and portfolio section
 function addNewTab(currency, currencyName) {
     const tab = document.createElement('div');
     tab.className = 'tab';
     tab.textContent = currencyName;
     tabsContainer.appendChild(tab);
 
-    // Create portfolio section
     const portfolioSection = createPortfolioSection(currency, currencyName);
     portfolioContainer.appendChild(portfolioSection);
 
-    // Store portfolio section in the map
     portfolios.set(currency, portfolioSection);
 
-    // Tab click event to switch portfolio
     tab.addEventListener('click', () => {
-        // Hide all portfolio sections
-        document.querySelectorAll('.portfolio-section').forEach((section) => {
+        document.querySelectorAll('.portfolio-section').forEach(section => {
             section.classList.add('hidden');
         });
-
-        // Show the selected portfolio section
         portfolioSection.classList.remove('hidden');
     });
-
-    console.log(`Tab and portfolio added for ${currencyName}`);
 }
 
-// Create portfolio section for a cryptocurrency
+// Create portfolio section
 function createPortfolioSection(currency, currencyName) {
     const section = document.createElement('div');
     section.className = 'portfolio-section hidden';
@@ -175,7 +154,6 @@ function createPortfolioSection(currency, currencyName) {
         </table>
     `;
 
-    // Handle transaction type changes
     const transactionType = section.querySelector('.transaction-type');
     const priceLabel = section.querySelector('.price-label');
     const amountLabel = section.querySelector('.amount-label');
