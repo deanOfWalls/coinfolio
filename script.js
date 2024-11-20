@@ -11,7 +11,7 @@ const priceLabel = document.getElementById('price-label');
 const amountLabel = document.getElementById('amount-label');
 const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
-const coinPanel = document.getElementById('coin-panel'); // Panel for coin buttons
+const ownedCoinsPanel = document.getElementById('owned-coins-panel'); // Panel for owned coins
 const transactionTable = document.getElementById('transaction-table'); // Transaction table
 const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
@@ -94,7 +94,7 @@ addTransactionButton.addEventListener('click', () => {
     // Create portfolio if it doesn't exist
     if (!portfolio) {
         portfolio = createPortfolio(currency, currencyName);
-        addCoinToPanel(currency, currencyName); // Add coin to the panel
+        addCoinToOwnedPanel(currency, currencyName); // Add coin to the owned panel
     }
 
     const quantity = type === 'buy' ? amount / price : amount;
@@ -132,8 +132,8 @@ function createPortfolio(currency, currencyName) {
     return portfolio;
 }
 
-// Add a coin button to the panel
-function addCoinToPanel(currency, currencyName) {
+// Add a coin button to the "Owned Coins" panel
+function addCoinToOwnedPanel(currency, currencyName) {
     const button = document.createElement('button');
     button.className = 'coin-button';
     button.textContent = currencyName;
@@ -145,8 +145,8 @@ function addCoinToPanel(currency, currencyName) {
         updateDashboard(portfolio);
         console.log(`Switched to portfolio: ${currencyName}`);
     });
-    coinPanel.appendChild(button);
-    console.log(`Coin button added for ${currencyName}`);
+    ownedCoinsPanel.appendChild(button);
+    console.log(`Coin added to owned panel: ${currencyName}`);
 }
 
 // Update the transaction table
@@ -196,18 +196,32 @@ function updateDashboard(portfolio) {
 // Populate dropdown with cryptocurrencies
 async function populateCurrencyDropdown() {
     try {
-        const fallbackCurrencies = {
-            BTC: "Bitcoin",
-            ETH: "Ethereum",
-            XDG: "Dogecoin",
-        };
+        const response = await fetch('https://api.kraken.com/0/public/AssetPairs');
+        const data = await response.json();
 
-        for (const [code, name] of Object.entries(fallbackCurrencies)) {
-            const option = document.createElement('option');
-            option.value = code;
-            option.textContent = `${name} (${code})`;
-            currencySelect.appendChild(option);
+        if (data.error && data.error.length) {
+            throw new Error('Error returned from Kraken API.');
         }
+
+        const assetPairs = data.result;
+        const currencies = new Map();
+
+        for (const pair in assetPairs) {
+            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, '');
+            const name = fallbackCurrencyNames[baseCurrency] || baseCurrency;
+            currencies.set(baseCurrency, name);
+        }
+
+        currencySelect.innerHTML = '';
+        Array.from(currencies.entries())
+            .sort((a, b) => a[1].localeCompare(b[1]))
+            .forEach(([code, name]) => {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = `${name} (${code})`;
+                currencySelect.appendChild(option);
+            });
+
         console.log('Dropdown populated with currencies.');
     } catch (error) {
         console.error("Failed to populate currency dropdown:", error);
