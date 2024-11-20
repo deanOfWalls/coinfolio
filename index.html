@@ -3,40 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coinfolio</title>
+    <title>Modal Test</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Coinfolio</h1>
+        <h1>Test Modal</h1>
     </header>
     <main>
-        <section id="dashboard">
-            <h2>Dashboard</h2>
-            <div>
-                <p><strong>Average Price Paid:</strong> <span id="average-price">-</span></p>
-                <p><strong>Total Coins Held:</strong> <span id="total-coins">-</span></p>
-                <p><strong>Fees Paid:</strong> <span id="total-fees">-</span></p>
-                <p><strong>Total Profit/Loss:</strong> <span id="profit-loss">-</span></p>
-            </div>
-        </section>
-        <section id="portfolio">
-            <button id="new-coin-button">+ Add Transaction</button>
-        </section>
+        <button id="open-modal">Open Modal</button>
     </main>
-    <!-- Modal -->
     <div id="modal" class="hidden">
         <div class="modal-content">
-            <h3>Add Cryptocurrency</h3>
-            <label for="currency-select">Select Currency:</label>
-            <select id="currency-select">
-                <option value="BTC">Bitcoin (BTC)</option>
-                <option value="ETH">Ethereum (ETH)</option>
-            </select>
-            <div class="modal-actions">
-                <button id="add-coin">Add</button>
-                <button id="close-modal">Cancel</button>
-            </div>
+            <h3>Modal Title</h3>
+            <p>This is a test modal.</p>
+            <button id="close-modal">Close</button>
         </div>
     </div>
     <script src="script.js"></script>
