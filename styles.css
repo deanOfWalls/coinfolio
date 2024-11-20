@@ -47,21 +47,19 @@ label {
     margin: 10px 0 5px;
 }
 
-.currency-select {
+.currency-select,
+input,
+select {
     padding: 8px;
     font-size: 14px;
     width: 100%;
     margin-bottom: 10px;
 }
 
-.transactions {
-    margin-top: 20px;
-}
-
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 20px;
 }
 
 table th, table td {
