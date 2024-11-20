@@ -15,15 +15,8 @@ const tabsContainer = document.getElementById('tabs');
 const portfolioContainer = document.getElementById('portfolio-container');
 
 // Dashboard state
-const dashboard = {
-    totalCoins: 0,
-    totalSpent: 0,
-    totalFees: 0,
-    profitLoss: 0,
-};
-
-// Map to track individual portfolios for cryptocurrencies
-const portfolios = new Map();
+let activeCurrency = null; // Track the currently selected currency
+const portfolios = new Map(); // Map to track individual portfolios for cryptocurrencies
 
 // Fallback mapping for common cryptocurrency names
 const fallbackCurrencyNames = {
@@ -76,20 +69,14 @@ sellButton.addEventListener('click', () => {
 
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
-    const currency = currencySelect.value;
-    const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
+    const currency = activeCurrency;
+    const currencyName = portfolios.get(currency)?.name || currency;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
     if (!currency || isNaN(price) || isNaN(amount)) {
         alert('Please fill in all fields.');
         return;
-    }
-
-    // Check if the portfolio exists, if not, create it
-    if (!portfolios.has(currency)) {
-        console.log(`Portfolio for ${currencyName} does not exist. Creating...`);
-        createPortfolio(currency, currencyName);
     }
 
     const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
@@ -111,7 +98,7 @@ addTransactionButton.addEventListener('click', () => {
     portfolio.transactions.push(transaction);
 
     updateTransactionTable(portfolio);
-    updateDashboard();
+    updateDashboard(currency);
 
     modal.classList.add('hidden');
     transactionInputs.classList.add('hidden');
@@ -127,41 +114,17 @@ function createPortfolio(currency, currencyName) {
     tabsContainer.appendChild(tab);
 
     // Create a new portfolio section
-    const portfolioSection = document.createElement('div');
-    portfolioSection.className = 'portfolio-section hidden';
-    portfolioSection.innerHTML = `
-        <h3>${currencyName} Portfolio</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Price</th>
-                    <th>USD</th>
-                    <th>Quantity</th>
-                    <th>Fees</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    `;
-
-    // Initialize portfolio data
     const portfolio = {
-        section: portfolioSection,
+        name: currencyName,
         transactions: [],
     };
     portfolios.set(currency, portfolio);
 
-    // Add portfolio section to the container
-    portfolioContainer.appendChild(portfolioSection);
-
     // Tab click event
     tab.addEventListener('click', () => {
-        document.querySelectorAll('.portfolio-section').forEach((section) => {
-            section.classList.add('hidden');
-        });
-        portfolioSection.classList.remove('hidden');
+        activeCurrency = currency;
+        updateTransactionTable(portfolio);
+        updateDashboard(currency);
     });
 
     console.log(`Portfolio created for ${currencyName}`);
@@ -169,7 +132,7 @@ function createPortfolio(currency, currencyName) {
 
 // Update the transaction table
 function updateTransactionTable(portfolio) {
-    const tbody = portfolio.section.querySelector('tbody');
+    const tbody = portfolioContainer.querySelector('tbody');
     tbody.innerHTML = ''; // Clear the table
 
     portfolio.transactions.forEach((tx) => {
@@ -186,43 +149,45 @@ function updateTransactionTable(portfolio) {
     });
 }
 
-// Update dashboard UI
-function updateDashboard() {
-    // Reset dashboard totals
+// Update dashboard UI for the selected coin
+function updateDashboard(currency) {
+    const portfolio = portfolios.get(currency);
+
+    if (!portfolio) {
+        console.error("Portfolio not found for currency:", currency);
+        return;
+    }
+
     let totalCoins = 0;
     let totalSpent = 0;
     let totalFees = 0;
     let profitLoss = 0;
 
-    // Aggregate data from all portfolios
-    portfolios.forEach((portfolio) => {
-        portfolio.transactions.forEach((tx) => {
-            if (tx.type === 'buy') {
-                totalCoins += tx.quantity;
-                totalSpent += tx.amount;
-                totalFees += tx.fees;
-            } else if (tx.type === 'sell') {
-                totalCoins -= tx.quantity;
-                profitLoss += tx.total - tx.fees;
-                totalFees += tx.fees;
-            }
-        });
+    portfolio.transactions.forEach((tx) => {
+        if (tx.type === 'buy') {
+            totalCoins += tx.quantity;
+            totalSpent += tx.amount;
+            totalFees += tx.fees;
+        } else if (tx.type === 'sell') {
+            totalCoins -= tx.quantity;
+            profitLoss += tx.total - tx.fees;
+            totalFees += tx.fees;
+        }
     });
-
-    // Update dashboard totals
-    dashboard.totalCoins = totalCoins;
-    dashboard.totalSpent = totalSpent;
-    dashboard.totalFees = totalFees;
-    dashboard.profitLoss = profitLoss;
 
     // Update the dashboard display
     document.getElementById('average-price').textContent =
-        dashboard.totalCoins > 0 ? (dashboard.totalSpent / dashboard.totalCoins).toFixed(2) : '-';
-    document.getElementById('total-coins').textContent = dashboard.totalCoins.toFixed(4);
-    document.getElementById('total-fees').textContent = dashboard.totalFees.toFixed(2);
-    document.getElementById('profit-loss').textContent = dashboard.profitLoss.toFixed(2);
+        totalCoins > 0 ? (totalSpent / totalCoins).toFixed(2) : '-';
+    document.getElementById('total-coins').textContent = totalCoins.toFixed(4);
+    document.getElementById('total-fees').textContent = totalFees.toFixed(2);
+    document.getElementById('profit-loss').textContent = profitLoss.toFixed(2);
 
-    console.log('Dashboard updated:', dashboard);
+    console.log(`Dashboard updated for ${currency}:`, {
+        totalCoins,
+        totalSpent,
+        totalFees,
+        profitLoss,
+    });
 }
 
 // Populate dropdown with cryptocurrencies
