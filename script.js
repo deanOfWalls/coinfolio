@@ -1,11 +1,18 @@
 // Select elements
-const newCoinButton = document.getElementById('open-modal');
-const closeModalButton = document.getElementById('close-modal');
-const addCoinButton = document.getElementById('add-coin');
-const modal = document.getElementById('modal');
-const currencySelect = document.getElementById('currency-select');
-const tabsContainer = document.getElementById('tabs');
-const portfolioContainer = document.getElementById('portfolio-container');
+const newCoinButton = document.getElementById('open-modal'); // Button to open modal
+const closeModalButton = document.getElementById('close-modal'); // Cancel button
+const buyButton = document.getElementById('buy-button'); // Buy button
+const sellButton = document.getElementById('sell-button'); // Sell button
+const addTransactionButton = document.getElementById('add-transaction'); // Add transaction button
+const modal = document.getElementById('modal'); // Modal container
+const transactionInputs = document.getElementById('transaction-inputs'); // Dynamic input container
+const priceLabel = document.getElementById('price-label'); // Label for price input
+const amountLabel = document.getElementById('amount-label'); // Label for amount input
+const priceInput = document.getElementById('price-input'); // Input for price
+const amountInput = document.getElementById('amount-input'); // Input for amount
+const currencySelect = document.getElementById('currency-select'); // Dropdown for currencies
+const tabsContainer = document.getElementById('tabs'); // Tabs container
+const portfolioContainer = document.getElementById('portfolio-container'); // Portfolio container
 
 // Dashboard state
 const dashboard = {
@@ -31,6 +38,7 @@ const fallbackCurrencyNames = {
 // Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.add('hidden'); // Hide modal by default
+    transactionInputs.classList.add('hidden'); // Hide inputs by default
     console.log('Modal hidden on page load.');
 
     // Populate the cryptocurrency dropdown
@@ -46,28 +54,67 @@ newCoinButton.addEventListener('click', () => {
 // Hide modal
 closeModalButton.addEventListener('click', () => {
     modal.classList.add('hidden'); // Hide modal
+    transactionInputs.classList.add('hidden'); // Reset inputs visibility
     console.log('Modal closed.');
 });
 
-// Add cryptocurrency to the portfolio
-addCoinButton.addEventListener('click', () => {
-    const currency = currencySelect.value;
-    const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
+// Show Buy input fields
+buyButton.addEventListener('click', () => {
+    transactionInputs.classList.remove('hidden'); // Show inputs
+    priceLabel.textContent = 'Buy Price per Coin:';
+    amountLabel.textContent = 'USD to Spend:';
+    console.log('Buy inputs displayed.');
+});
 
-    if (!currency) {
-        alert("Please select a cryptocurrency.");
+// Show Sell input fields
+sellButton.addEventListener('click', () => {
+    transactionInputs.classList.remove('hidden'); // Show inputs
+    priceLabel.textContent = 'Sell Price per Coin:';
+    amountLabel.textContent = 'Number of Coins to Sell:';
+    console.log('Sell inputs displayed.');
+});
+
+// Add transaction logic
+addTransactionButton.addEventListener('click', () => {
+    const currency = currencySelect.value;
+    const price = parseFloat(priceInput.value);
+    const amount = parseFloat(amountInput.value);
+
+    if (!currency || isNaN(price) || isNaN(amount)) {
+        alert('Please fill in all fields.');
         return;
     }
 
-    if (!portfolios.has(currency)) {
-        addNewTab(currency, currencyName);
+    const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
+    const quantity = type === 'buy' ? amount / price : amount;
+    const fees = type === 'buy' ? amount * 0.004 : (quantity * price) * 0.004;
+    const total = type === 'buy' ? amount + fees : (quantity * price) - fees;
+
+    console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
+
+    // Update dashboard (simple example)
+    if (type === 'buy') {
+        dashboard.totalCoins += quantity;
+        dashboard.totalSpent += amount;
     } else {
-        alert("This cryptocurrency is already added.");
+        dashboard.totalCoins -= quantity;
+        dashboard.profitLoss += total - fees;
     }
 
-    modal.classList.add('hidden'); // Hide modal
-    console.log(`Added cryptocurrency: ${currencyName}`);
+    updateDashboard();
+
+    modal.classList.add('hidden'); // Close modal
+    transactionInputs.classList.add('hidden'); // Reset inputs visibility
 });
+
+// Update dashboard UI
+function updateDashboard() {
+    document.getElementById('average-price').textContent =
+        dashboard.totalCoins > 0 ? (dashboard.totalSpent / dashboard.totalCoins).toFixed(2) : '-';
+    document.getElementById('total-coins').textContent = dashboard.totalCoins.toFixed(4);
+    document.getElementById('total-fees').textContent = dashboard.totalFees.toFixed(2);
+    document.getElementById('profit-loss').textContent = dashboard.profitLoss.toFixed(2);
+}
 
 // Populate dropdown with cryptocurrencies
 async function populateCurrencyDropdown() {
@@ -103,81 +150,4 @@ async function populateCurrencyDropdown() {
     } catch (error) {
         console.error("Failed to fetch Kraken currencies:", error);
     }
-}
-
-// Add a new tab and portfolio section
-function addNewTab(currency, currencyName) {
-    const tab = document.createElement('div');
-    tab.className = 'tab';
-    tab.textContent = currencyName;
-    tabsContainer.appendChild(tab);
-
-    const portfolioSection = createPortfolioSection(currency, currencyName);
-    portfolioContainer.appendChild(portfolioSection);
-
-    portfolios.set(currency, portfolioSection);
-
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.portfolio-section').forEach(section => {
-            section.classList.add('hidden');
-        });
-        portfolioSection.classList.remove('hidden');
-    });
-
-    console.log(`Tab and portfolio added for ${currencyName}`);
-}
-
-// Create portfolio section
-function createPortfolioSection(currency, currencyName) {
-    const section = document.createElement('div');
-    section.className = 'portfolio-section hidden'; // Hidden by default
-    section.innerHTML = `
-        <h3>${currencyName} Portfolio</h3>
-        <div class="transaction-input">
-            <label>Transaction Type:</label>
-            <select class="transaction-type">
-                <option value="buy">Buy</option>
-                <option value="sell">Sell</option>
-            </select>
-
-            <label class="price-label">Buy Price per Coin:</label>
-            <input type="number" class="price-input" placeholder="Enter price per coin">
-
-            <label class="amount-label">USD to Spend:</label>
-            <input type="number" class="amount-input" placeholder="Enter amount">
-
-            <button class="add-transaction">Add Transaction</button>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Price</th>
-                    <th>USD</th>
-                    <th>Quantity</th>
-                    <th>Fees</th>
-                    <th>Total</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-    `;
-
-    // Handle transaction type changes
-    const transactionType = section.querySelector('.transaction-type');
-    const priceLabel = section.querySelector('.price-label');
-    const amountLabel = section.querySelector('.amount-label');
-
-    transactionType.addEventListener('change', () => {
-        if (transactionType.value === 'sell') {
-            priceLabel.textContent = 'Sell Price per Coin:';
-            amountLabel.textContent = 'Number of Coins to Sell:';
-        } else {
-            priceLabel.textContent = 'Buy Price per Coin:';
-            amountLabel.textContent = 'USD to Spend:';
-        }
-    });
-
-    return section;
 }
