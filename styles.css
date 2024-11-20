@@ -47,7 +47,7 @@ label {
     margin: 10px 0 5px;
 }
 
-select, input {
+.currency-select {
     padding: 8px;
     font-size: 14px;
     width: 100%;
