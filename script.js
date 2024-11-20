@@ -5,6 +5,7 @@ const addCoinButton = document.getElementById('add-coin'); // Add button in moda
 const modal = document.getElementById('modal'); // Modal container
 const currencySelect = document.getElementById('currency-select'); // Dropdown for currencies
 const tabsContainer = document.getElementById('tabs'); // Tabs container
+const portfolioContainer = document.getElementById('portfolio-container'); // Portfolio container
 
 // Dashboard state (for all currencies combined)
 const dashboard = {
@@ -118,7 +119,7 @@ function addNewTab(currency, currencyName) {
 
     // Create portfolio section
     const portfolioSection = createPortfolioSection(currency, currencyName);
-    document.body.appendChild(portfolioSection);
+    portfolioContainer.appendChild(portfolioSection);
 
     // Store portfolio section in the map
     portfolios.set(currency, portfolioSection);
@@ -187,43 +188,6 @@ function createPortfolioSection(currency, currencyName) {
             priceLabel.textContent = 'Buy Price per Coin:';
             amountLabel.textContent = 'USD to Spend:';
         }
-    });
-
-    // Add transaction logic
-    section.querySelector('.add-transaction').addEventListener('click', () => {
-        const type = transactionType.value;
-        const price = parseFloat(section.querySelector('.price-input').value);
-        const amount = parseFloat(section.querySelector('.amount-input').value);
-
-        if (isNaN(price) || isNaN(amount) || price <= 0 || amount <= 0) {
-            alert("Please enter valid inputs.");
-            return;
-        }
-
-        const quantity = type === 'buy' ? amount / price : amount; // Quantity for buy or sell
-        const fees = amount * 0.004; // Example: 0.40% fee
-        const total = type === 'buy' ? amount + fees : amount - fees;
-
-        // Add transaction to the table
-        const tbody = section.querySelector('tbody');
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${type}</td>
-            <td>${price.toFixed(2)}</td>
-            <td>${amount.toFixed(2)}</td>
-            <td>${quantity.toFixed(4)}</td>
-            <td>${fees.toFixed(2)}</td>
-            <td>${total.toFixed(2)}</td>
-            <td><button class="remove-btn">Remove</button></td>
-        `;
-        tbody.appendChild(row);
-
-        // Remove transaction logic
-        row.querySelector('.remove-btn').addEventListener('click', () => {
-            tbody.removeChild(row);
-        });
-
-        console.log(`Transaction added: ${type}, ${amount} USD, ${quantity} coins`);
     });
 
     return section;
