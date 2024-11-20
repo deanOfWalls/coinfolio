@@ -3,23 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modal Test</title>
+    <title>Coinfolio</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <header>
-        <h1>Test Modal</h1>
+        <h1>Coinfolio</h1>
     </header>
     <main>
-        <button id="open-modal">Open Modal</button>
+        <!-- Dashboard Section -->
+        <section id="dashboard">
+            <h2>Dashboard</h2>
+            <div class="kpi">
+                <p><strong>Average Price Paid:</strong> <span id="average-price">-</span></p>
+                <p><strong>Total Coins Held:</strong> <span id="total-coins">-</span></p>
+                <p><strong>Fees Paid:</strong> <span id="total-fees">-</span></p>
+                <p><strong>Total Profit/Loss:</strong> <span id="profit-loss">-</span></p>
+            </div>
+        </section>
+        
+        <!-- Tabs for Cryptocurrencies -->
+        <section id="portfolio">
+            <div id="tabs"></div>
+            <button id="open-modal">+ Add Transaction</button>
+        </section>
     </main>
+
+    <!-- Modal for Adding Cryptocurrency -->
     <div id="modal" class="hidden">
         <div class="modal-content">
-            <h3>Modal Title</h3>
-            <p>This is a test modal.</p>
-            <button id="close-modal">Close</button>
+            <h3>Add Cryptocurrency</h3>
+            <label for="currency-select">Select Currency:</label>
+            <select id="currency-select">
+                <option value="">Loading...</option>
+            </select>
+            <div class="modal-actions">
+                <button id="add-coin">Add</button>
+                <button id="close-modal">Cancel</button>
+            </div>
         </div>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
