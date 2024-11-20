@@ -11,8 +11,8 @@ const amountLabel = document.getElementById('amount-label');
 const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
 const currencySelect = document.getElementById('currency-select');
-const coinPanel = document.getElementById('coin-panel'); // Panel for coin buttons
-const transactionTable = document.querySelector('table tbody'); // Transaction table
+const coinPanel = document.getElementById('coin-panel');
+const transactionTable = document.querySelector('table tbody');
 const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
     totalCoins: document.getElementById('total-coins'),
@@ -48,6 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 newCoinButton.addEventListener('click', () => {
     modal.classList.remove('hidden');
     transactionInputs.classList.add('hidden'); // Hide inputs until a transaction type is selected
+    priceInput.value = '';
+    amountInput.value = '';
     console.log('Modal shown.');
 });
 
@@ -85,6 +87,7 @@ addTransactionButton.addEventListener('click', () => {
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
+    // Check for empty fields
     if (!currency || isNaN(price) || isNaN(amount)) {
         alert('Please fill in all fields.');
         return;
