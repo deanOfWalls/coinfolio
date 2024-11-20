@@ -85,13 +85,14 @@ addTransactionButton.addEventListener('click', () => {
         return;
     }
 
-    const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
-    const portfolio = portfolios.get(currency);
-
-    if (!portfolio) {
-        alert('Portfolio not found for this currency.');
+    // Ensure the portfolio exists
+    if (!portfolios.has(currency)) {
+        alert('Portfolio not found for this currency. Please add it first.');
         return;
     }
+
+    const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
+    const portfolio = portfolios.get(currency);
 
     const quantity = type === 'buy' ? amount / price : amount;
     const fees = type === 'buy' ? amount * 0.004 : (quantity * price) * 0.004;
@@ -116,6 +117,61 @@ addTransactionButton.addEventListener('click', () => {
     console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
 
+// Add a new cryptocurrency tab and portfolio
+function addNewTab(currency, currencyName) {
+    // Create a new tab
+    const tab = document.createElement('div');
+    tab.className = 'tab';
+    tab.textContent = currencyName;
+    tabsContainer.appendChild(tab);
+
+    // Create a new portfolio section
+    const portfolioSection = createPortfolioSection(currency, currencyName);
+
+    // Initialize portfolio data
+    const portfolio = {
+        section: portfolioSection,
+        transactions: [],
+    };
+    portfolios.set(currency, portfolio);
+
+    // Add portfolio section to the container
+    portfolioContainer.appendChild(portfolioSection);
+
+    // Tab click event
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.portfolio-section').forEach((section) => {
+            section.classList.add('hidden');
+        });
+        portfolioSection.classList.remove('hidden');
+    });
+
+    console.log(`Tab and portfolio created for ${currencyName}`);
+}
+
+// Create portfolio section for a cryptocurrency
+function createPortfolioSection(currency, currencyName) {
+    const section = document.createElement('div');
+    section.className = 'portfolio-section hidden';
+    section.innerHTML = `
+        <h3>${currencyName} Portfolio</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Price</th>
+                    <th>USD</th>
+                    <th>Quantity</th>
+                    <th>Fees</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    `;
+    return section;
+}
+
 // Update the transaction table
 function updateTransactionTable(portfolio) {
     const tbody = portfolio.section.querySelector('tbody');
@@ -133,6 +189,15 @@ function updateTransactionTable(portfolio) {
         `;
         tbody.appendChild(row);
     });
+}
+
+// Update dashboard UI
+function updateDashboard() {
+    document.getElementById('average-price').textContent =
+        dashboard.totalCoins > 0 ? (dashboard.totalSpent / dashboard.totalCoins).toFixed(2) : '-';
+    document.getElementById('total-coins').textContent = dashboard.totalCoins.toFixed(4);
+    document.getElementById('total-fees').textContent = dashboard.totalFees.toFixed(2);
+    document.getElementById('profit-loss').textContent = dashboard.profitLoss.toFixed(2);
 }
 
 // Populate dropdown with cryptocurrencies
