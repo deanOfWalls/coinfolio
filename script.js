@@ -83,7 +83,7 @@ sellButton.addEventListener('click', () => {
 
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
-    const currency = activeCurrency || currencySelect.value;
+    const currency = activeCurrency || currencySelect.value; // Handle active tab or dropdown selection
     const currencyName = portfolios.get(currency)?.name || currencySelect.options[currencySelect.selectedIndex].text;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
@@ -98,6 +98,7 @@ addTransactionButton.addEventListener('click', () => {
 
     // Create the portfolio if it doesn't exist
     if (!portfolio) {
+        console.log(`Portfolio for ${currencyName} does not exist. Creating...`);
         portfolio = createPortfolio(currency, currencyName);
         addCoinToPanel(currency, currencyName); // Add the coin to the panel
     }
