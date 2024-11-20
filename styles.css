@@ -27,7 +27,7 @@ section {
 
 .kpi p {
     margin: 5px 0;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 #new-tab-button {
@@ -49,21 +49,25 @@ section {
 .tab {
     border: 1px solid #ccc;
     margin-bottom: 20px;
-    padding: 15px;
+    padding: 10px;
     border-radius: 8px;
-    background-color: white;
+    background-color: #fefefe;
+}
+
+.transaction-input {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
 }
 
 .transaction-input label {
-    display: block;
-    margin-top: 10px;
+    margin: 0;
     font-size: 14px;
 }
 
 input, select {
     width: 100%;
     padding: 8px;
-    margin-top: 5px;
     font-size: 14px;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -73,11 +77,12 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    font-size: 14px;
 }
 
 table th, table td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 8px;
     text-align: center;
 }
 
@@ -85,6 +90,15 @@ table th {
     background-color: #f2f2f2;
 }
 
-table td {
-    font-size: 14px;
+table .remove-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+table .remove-btn:hover {
+    background-color: #c0392b;
 }
