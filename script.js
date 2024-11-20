@@ -159,6 +159,67 @@ function createPortfolioSection(currency, currencyName) {
         usdInput.value = dashboard.totalCoins.toFixed(4);
     });
 
+    // Handle adding a transaction
+    section.querySelector('#add-transaction').addEventListener('click', () => {
+        const type = transactionType.value;
+        const price = parseFloat(priceInput.value);
+        const usdAmount = parseFloat(usdInput.value);
+
+        if (isNaN(price) || isNaN(usdAmount) || usdAmount <= 0) {
+            alert("Please enter valid inputs.");
+            return;
+        }
+
+        const quantity = type === 'buy' ? usdAmount / price : usdAmount;
+        const fees = usdAmount * defaultFeeRate;
+        const total = type === 'buy' ? usdAmount + fees : usdAmount - fees;
+
+        if (type === 'sell' && quantity > dashboard.totalCoins) {
+            alert("You cannot sell more coins than you own.");
+            return;
+        }
+
+        // Update KPIs
+        if (type === 'buy') {
+            dashboard.totalCoins += quantity;
+            dashboard.totalSpent += usdAmount;
+        } else {
+            dashboard.totalCoins -= quantity;
+            dashboard.profitLoss += usdAmount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
+        }
+        dashboard.totalFees += fees;
+
+        updateDashboard();
+
+        // Add transaction to table
+        const tbody = section.querySelector('tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${type}</td>
+            <td>${price.toFixed(2)}</td>
+            <td>${usdAmount.toFixed(2)}</td>
+            <td>${quantity.toFixed(4)}</td>
+            <td>${fees.toFixed(2)}</td>
+            <td>${total.toFixed(2)}</td>
+            <td><button class="remove-btn">Remove</button></td>
+        `;
+        tbody.appendChild(row);
+
+        // Remove transaction logic
+        row.querySelector('.remove-btn').addEventListener('click', () => {
+            tbody.removeChild(row);
+            if (type === 'buy') {
+                dashboard.totalCoins -= quantity;
+                dashboard.totalSpent -= usdAmount;
+            } else {
+                dashboard.totalCoins += quantity;
+                dashboard.profitLoss -= usdAmount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
+            }
+            dashboard.totalFees -= fees;
+            updateDashboard();
+        });
+    });
+
     return section;
 }
 

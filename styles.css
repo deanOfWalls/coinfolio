@@ -46,27 +46,6 @@ section {
     background-color: #0056b3;
 }
 
-#tabs {
-    display: flex;
-    gap: 10px;
-}
-
-.tab {
-    padding: 10px 20px;
-    background-color: #007BFF;
-    color: white;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.tab:hover {
-    background-color: #0056b3;
-}
-
-.hidden {
-    display: none;
-}
-
 #modal {
     position: fixed;
     top: 0;
@@ -80,6 +59,10 @@ section {
     z-index: 1000;
 }
 
+.hidden {
+    display: none;
+}
+
 .modal-content {
     background: white;
     padding: 20px;
@@ -90,7 +73,11 @@ section {
     width: 100%;
 }
 
-.modal-content button {
+.modal-actions {
+    margin-top: 20px;
+}
+
+.modal-actions button {
     margin: 10px 5px;
     padding: 10px 15px;
     border: none;

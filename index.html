@@ -24,7 +24,7 @@
             <div id="tabs">
                 <!-- Cryptocurrency tabs -->
             </div>
-            <button id="new-coin-button">+ Add Cryptocurrency</button>
+            <button id="new-coin-button">+ Add Transaction</button>
         </section>
     </main>
     <div id="modal" class="hidden">
@@ -32,12 +32,12 @@
             <h3>Add Cryptocurrency</h3>
             <label for="currency-select">Select Currency:</label>
             <select id="currency-select">
-                <option value="BTC">Bitcoin (BTC)</option>
-                <option value="ETH">Ethereum (ETH)</option>
-                <option value="DOGE">Dogecoin (DOGE)</option>
+                <!-- Options will be dynamically populated -->
             </select>
-            <button id="add-coin">Add</button>
-            <button id="close-modal">Cancel</button>
+            <div class="modal-actions">
+                <button id="add-coin">Add</button>
+                <button id="close-modal">Cancel</button>
+            </div>
         </div>
     </div>
     <script src="script.js"></script>
