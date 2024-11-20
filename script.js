@@ -11,11 +11,17 @@ const amountLabel = document.getElementById('amount-label');
 const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
 const currencySelect = document.getElementById('currency-select');
-const tabsContainer = document.getElementById('tabs');
-const portfolioContainer = document.getElementById('portfolio-container');
+const coinPanel = document.getElementById('coin-panel'); // Panel for coin buttons
+const transactionTable = document.querySelector('table tbody'); // Transaction table
+const dashboardElements = {
+    averagePrice: document.getElementById('average-price'),
+    totalCoins: document.getElementById('total-coins'),
+    totalFees: document.getElementById('total-fees'),
+    profitLoss: document.getElementById('profit-loss'),
+};
 
 // Dashboard state
-let activeCurrency = null; // Track the currently selected currency
+let activeCurrency = null; // Currently selected coin
 const portfolios = new Map(); // Map to track individual portfolios for cryptocurrencies
 
 // Fallback mapping for common cryptocurrency names
@@ -74,26 +80,19 @@ addTransactionButton.addEventListener('click', () => {
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
-    console.log(`Adding transaction for currency: ${currency}`);
-    console.log(`Price Input: ${price}, Amount Input: ${amount}`);
-
-    if (!currency) {
-        alert('Please select a cryptocurrency.');
-        return;
-    }
-
-    if (isNaN(price) || price <= 0) {
-        alert('Please enter a valid price.');
-        return;
-    }
-
-    if (isNaN(amount) || amount <= 0) {
-        alert('Please enter a valid amount.');
+    if (!currency || isNaN(price) || isNaN(amount)) {
+        alert('Please fill in all fields.');
         return;
     }
 
     const type = priceLabel.textContent.includes('Buy') ? 'buy' : 'sell';
-    const portfolio = portfolios.get(currency) || createPortfolio(currency, currencyName);
+    let portfolio = portfolios.get(currency);
+
+    // Create the portfolio if it doesn't exist
+    if (!portfolio) {
+        portfolio = createPortfolio(currency, currencyName);
+        addCoinToPanel(currency, currencyName); // Add the coin to the panel
+    }
 
     const quantity = type === 'buy' ? amount / price : amount;
     const fees = type === 'buy' ? amount * 0.004 : (quantity * price) * 0.004;
@@ -118,36 +117,37 @@ addTransactionButton.addEventListener('click', () => {
     console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
 
-
 // Create a portfolio for a cryptocurrency
 function createPortfolio(currency, currencyName) {
-    // Create a new tab
-    const tab = document.createElement('div');
-    tab.className = 'tab';
-    tab.textContent = currencyName;
-    tabsContainer.appendChild(tab);
-
-    // Create a new portfolio section
     const portfolio = {
         name: currencyName,
         transactions: [],
     };
     portfolios.set(currency, portfolio);
 
-    // Tab click event
-    tab.addEventListener('click', () => {
+    console.log(`Portfolio created for ${currencyName}`);
+    return portfolio;
+}
+
+// Add a coin button to the panel
+function addCoinToPanel(currency, currencyName) {
+    const button = document.createElement('button');
+    button.className = 'coin-button';
+    button.textContent = currency; // Display coin symbol (e.g., BTC, XDG)
+    button.title = currencyName; // Tooltip with full name
+    button.addEventListener('click', () => {
         activeCurrency = currency;
+        const portfolio = portfolios.get(currency);
         updateTransactionTable(portfolio);
         updateDashboard(currency);
+        console.log(`Switched to portfolio: ${currencyName}`);
     });
-
-    console.log(`Portfolio created for ${currencyName}`);
+    coinPanel.appendChild(button);
 }
 
 // Update the transaction table
 function updateTransactionTable(portfolio) {
-    const tbody = portfolioContainer.querySelector('tbody');
-    tbody.innerHTML = ''; // Clear the table
+    transactionTable.innerHTML = ''; // Clear the table
 
     portfolio.transactions.forEach((tx) => {
         const row = document.createElement('tr');
@@ -159,7 +159,7 @@ function updateTransactionTable(portfolio) {
             <td>${tx.fees.toFixed(2)}</td>
             <td>${tx.total.toFixed(2)}</td>
         `;
-        tbody.appendChild(row);
+        transactionTable.appendChild(row);
     });
 }
 
@@ -190,11 +190,11 @@ function updateDashboard(currency) {
     });
 
     // Update the dashboard display
-    document.getElementById('average-price').textContent =
+    dashboardElements.averagePrice.textContent =
         totalCoins > 0 ? (totalSpent / totalCoins).toFixed(2) : '-';
-    document.getElementById('total-coins').textContent = totalCoins.toFixed(4);
-    document.getElementById('total-fees').textContent = totalFees.toFixed(2);
-    document.getElementById('profit-loss').textContent = profitLoss.toFixed(2);
+    dashboardElements.totalCoins.textContent = totalCoins.toFixed(4);
+    dashboardElements.totalFees.textContent = totalFees.toFixed(2);
+    dashboardElements.profitLoss.textContent = profitLoss.toFixed(2);
 
     console.log(`Dashboard updated for ${currency}:`, {
         totalCoins,
