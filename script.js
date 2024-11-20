@@ -127,7 +127,7 @@ function createPortfolioSection(currency, currencyName) {
     section.innerHTML = `
         <h3>${currencyName} Portfolio</h3>
         <div class="transaction-input">
-            <label for="transaction-type">Transaction Type:</label>
+            <label>Transaction Type:</label>
             <select class="transaction-type">
                 <option value="buy">Buy</option>
                 <option value="sell">Sell</option>
@@ -187,23 +187,6 @@ function createPortfolioSection(currency, currencyName) {
         const fees = amount * 0.004; // Example: 0.40% fee
         const total = type === 'buy' ? amount + fees : amount - fees;
 
-        if (type === 'sell' && quantity > dashboard.totalCoins) {
-            alert("You cannot sell more coins than you own.");
-            return;
-        }
-
-        // Update Dashboard KPIs
-        if (type === 'buy') {
-            dashboard.totalCoins += quantity;
-            dashboard.totalSpent += amount;
-        } else {
-            dashboard.totalCoins -= quantity;
-            dashboard.profitLoss += amount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
-        }
-        dashboard.totalFees += fees;
-
-        updateDashboard();
-
         // Add transaction to the table
         const tbody = section.querySelector('tbody');
         const row = document.createElement('tr');
@@ -221,27 +204,8 @@ function createPortfolioSection(currency, currencyName) {
         // Remove transaction logic
         row.querySelector('.remove-btn').addEventListener('click', () => {
             tbody.removeChild(row);
-            if (type === 'buy') {
-                dashboard.totalCoins -= quantity;
-                dashboard.totalSpent -= amount;
-            } else {
-                dashboard.totalCoins += quantity;
-                dashboard.profitLoss -= amount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
-            }
-            dashboard.totalFees -= fees;
-            updateDashboard();
         });
     });
 
     return section;
-}
-
-// Update dashboard KPIs
-function updateDashboard() {
-    document.getElementById('average-price').textContent = dashboard.totalCoins > 0
-        ? (dashboard.totalSpent / dashboard.totalCoins).toFixed(2)
-        : '-';
-    document.getElementById('total-coins').textContent = dashboard.totalCoins.toFixed(4);
-    document.getElementById('total-fees').textContent = dashboard.totalFees.toFixed(2);
-    document.getElementById('profit-loss').textContent = dashboard.profitLoss.toFixed(2);
 }
