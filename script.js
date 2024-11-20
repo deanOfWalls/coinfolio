@@ -1,59 +1,18 @@
 const tabsContainer = document.getElementById('tabs-container');
 const newTabButton = document.getElementById('new-tab-button');
 
-// Fallback currency mapping
-const fallbackCurrencies = {
-    XDG: "Dogecoin",
-    XMR: "Monero",
-    XXBT: "Bitcoin",
-    ZUSD: "USD",
-    ZEUR: "Euro",
-};
+// Global KPIs
+let totalCoins = 0;
+let totalSpent = 0;
+let totalFees = 0;
+let profitLoss = 0;
 
-// Function to fetch and map Kraken currencies
-async function fetchAndPopulateCurrencies() {
-    try {
-        const response = await fetch('https://api.kraken.com/0/public/AssetPairs');
-        const data = await response.json();
-
-        if (data.error && data.error.length) {
-            console.error("API Error:", data.error);
-            return;
-        }
-
-        const assetPairs = data.result;
-        const currencies = new Map();
-
-        // Extract base currencies and their human-readable names
-        for (const pair in assetPairs) {
-            const base = assetPairs[pair].base.replace(/^[XZ]/, '');
-            const altName = fallbackCurrencies[base] || base;
-            currencies.set(base, altName);
-        }
-
-        // Convert to sorted array and populate dropdowns
-        const sortedCurrencies = Array.from(currencies.entries()).sort((a, b) => a[1].localeCompare(b[1]));
-        populateDropdowns(sortedCurrencies);
-    } catch (error) {
-        console.error("Error fetching currencies:", error);
-        // Populate dropdowns with fallback data in case of API failure
-        populateDropdowns(Object.entries(fallbackCurrencies));
-    }
-}
-
-// Populate dropdown menus with currencies
-function populateDropdowns(currencies) {
-    const currencySelectors = document.querySelectorAll('.currency-select');
-    currencySelectors.forEach(select => {
-        select.innerHTML = '';
-        currencies.forEach(([code, name]) => {
-            const option = document.createElement('option');
-            option.value = code;
-            option.textContent = `${name} (${code})`;
-            select.appendChild(option);
-        });
-    });
-}
+// Fee Rates
+const feeSchedule = [
+    { minVolume: 0, maxVolume: 10000, maker: 0.0025, taker: 0.0040 },
+    { minVolume: 10001, maxVolume: 50000, maker: 0.0020, taker: 0.0035 },
+    { minVolume: 50001, maxVolume: 100000, maker: 0.0014, taker: 0.0024 },
+];
 
 // Add a new tab
 function addNewTab() {
@@ -61,26 +20,31 @@ function addNewTab() {
     tab.className = 'tab';
 
     tab.innerHTML = `
-        <h2>New Cryptocurrency</h2>
-        <label for="currency">Currency:</label>
-        <select class="currency-select"></select>
+        <h3>New Cryptocurrency</h3>
         <div class="transaction-input">
-            <label for="price">Price per Coin:</label>
-            <input type="number" id="price" step="0.01" placeholder="Enter price">
+            <label>Transaction Type:</label>
+            <select id="transaction-type">
+                <option value="buy">Buy</option>
+                <option value="sell">Sell</option>
+            </select>
 
-            <label for="usdSpent">USD Spent:</label>
-            <input type="number" id="usdSpent" step="0.01" placeholder="Enter USD spent">
+            <label>Price per Coin:</label>
+            <input type="number" id="price" placeholder="Enter price per coin">
+
+            <label>USD Spent/Earned:</label>
+            <input type="number" id="usdSpent" placeholder="Enter USD amount">
 
             <button id="add-transaction">Add Transaction</button>
         </div>
         <table>
             <thead>
                 <tr>
+                    <th>Type</th>
                     <th>Price</th>
-                    <th>USD Spent</th>
+                    <th>USD</th>
                     <th>Quantity</th>
                     <th>Fees</th>
-                    <th>Total (with Fees)</th>
+                    <th>Total</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -88,34 +52,54 @@ function addNewTab() {
     `;
 
     tabsContainer.appendChild(tab);
-    fetchAndPopulateCurrencies();
 
-    // Add transaction handler
     tab.querySelector('#add-transaction').addEventListener('click', () => {
+        const type = tab.querySelector('#transaction-type').value;
         const price = parseFloat(tab.querySelector('#price').value);
         const usdSpent = parseFloat(tab.querySelector('#usdSpent').value);
 
         if (isNaN(price) || isNaN(usdSpent)) {
-            alert("Please enter valid values for both fields.");
+            alert("Please enter valid inputs.");
             return;
         }
 
         const quantity = usdSpent / price;
-        const fees = usdSpent * 0.0040; // Assume taker fee of 0.40%
-        const total = usdSpent + fees;
+        const fee = usdSpent * 0.004; // Default to taker fee
+        const total = type === 'buy' ? usdSpent + fee : usdSpent - fee;
 
+        // Update KPIs
+        if (type === 'buy') {
+            totalCoins += quantity;
+            totalSpent += usdSpent;
+        } else {
+            totalCoins -= quantity;
+            profitLoss += usdSpent - (quantity * (totalSpent / totalCoins));
+        }
+        totalFees += fee;
+
+        updateDashboard();
+
+        // Add row to table
         const row = document.createElement('tr');
         row.innerHTML = `
+            <td>${type}</td>
             <td>${price.toFixed(2)}</td>
             <td>${usdSpent.toFixed(2)}</td>
             <td>${quantity.toFixed(4)}</td>
-            <td>${fees.toFixed(2)}</td>
+            <td>${fee.toFixed(2)}</td>
             <td>${total.toFixed(2)}</td>
         `;
         tab.querySelector('tbody').appendChild(row);
     });
 }
 
-// Initialize the app
+// Update dashboard KPIs
+function updateDashboard() {
+    document.getElementById('average-price').textContent = (totalSpent / totalCoins).toFixed(2);
+    document.getElementById('total-coins').textContent = totalCoins.toFixed(4);
+    document.getElementById('total-fees').textContent = totalFees.toFixed(2);
+    document.getElementById('profit-loss').textContent = profitLoss.toFixed(2);
+}
+
+// Initialize app
 newTabButton.addEventListener('click', addNewTab);
-window.addEventListener('load', fetchAndPopulateCurrencies);
