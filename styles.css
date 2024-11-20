@@ -30,7 +30,7 @@ section {
     font-size: 16px;
 }
 
-#new-tab-button {
+#new-coin-button {
     display: block;
     margin: 20px auto;
     background-color: #007BFF;
@@ -42,63 +42,77 @@ section {
     cursor: pointer;
 }
 
-#new-tab-button:hover {
+#new-coin-button:hover {
     background-color: #0056b3;
 }
 
-.tab {
-    border: 1px solid #ccc;
-    margin-bottom: 20px;
-    padding: 10px;
-    border-radius: 8px;
-    background-color: #fefefe;
-}
-
-.transaction-input {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+#tabs {
+    display: flex;
     gap: 10px;
 }
 
-.transaction-input label {
-    margin: 0;
-    font-size: 14px;
-}
-
-input, select {
-    width: 100%;
-    padding: 8px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 14px;
-}
-
-table th, table td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: center;
-}
-
-table th {
-    background-color: #f2f2f2;
-}
-
-table .remove-btn {
-    background-color: #e74c3c;
+.tab {
+    padding: 10px 20px;
+    background-color: #007BFF;
     color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tab:hover {
+    background-color: #0056b3;
+}
+
+.hidden {
+    display: none;
+}
+
+#modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.modal-content button {
+    margin: 10px 5px;
+    padding: 10px 15px;
     border: none;
-    padding: 5px 10px;
+    font-size: 14px;
     cursor: pointer;
     border-radius: 4px;
 }
 
-table .remove-btn:hover {
+#add-coin {
+    background-color: #007BFF;
+    color: white;
+}
+
+#add-coin:hover {
+    background-color: #0056b3;
+}
+
+#close-modal {
+    background-color: #e74c3c;
+    color: white;
+}
+
+#close-modal:hover {
     background-color: #c0392b;
 }

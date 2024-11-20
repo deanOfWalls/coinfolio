@@ -21,11 +21,25 @@
             </div>
         </section>
         <section id="portfolio">
-            <div id="tabs-container"></div>
-            <button id="new-tab-button">+ Add Cryptocurrency</button>
+            <div id="tabs">
+                <!-- Cryptocurrency tabs -->
+            </div>
+            <button id="new-coin-button">+ Add Cryptocurrency</button>
         </section>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <div id="modal" class="hidden">
+        <div class="modal-content">
+            <h3>Add Cryptocurrency</h3>
+            <label for="currency-select">Select Currency:</label>
+            <select id="currency-select">
+                <option value="BTC">Bitcoin (BTC)</option>
+                <option value="ETH">Ethereum (ETH)</option>
+                <option value="DOGE">Dogecoin (DOGE)</option>
+            </select>
+            <button id="add-coin">Add</button>
+            <button id="close-modal">Cancel</button>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
