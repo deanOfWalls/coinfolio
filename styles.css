@@ -80,8 +80,9 @@ button:hover {
 }
 
 .hidden {
-    display: none;
+    display: none !important; /* Ensure this rule cannot be overridden */
 }
+
 
 .modal-content {
     background: white;
