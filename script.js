@@ -11,8 +11,8 @@ const priceLabel = document.getElementById('price-label');
 const amountLabel = document.getElementById('amount-label');
 const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
-const coinPanel = document.getElementById('coin-panel');
-const transactionTable = document.getElementById('transaction-table');
+const coinPanel = document.getElementById('coin-panel'); // Panel for coin buttons
+const transactionTable = document.getElementById('transaction-table'); // Transaction table
 const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
     totalCoins: document.getElementById('total-coins'),
@@ -21,59 +21,65 @@ const dashboardElements = {
 };
 
 // Dashboard state
-let activeCurrency = null;
+let activeCurrency = null; // Currently selected coin
 const portfolios = new Map(); // Track portfolios by coin
 
-// Populate currency dropdown
-async function populateCurrencyDropdown() {
-    const fallbackCurrencies = {
-        BTC: "Bitcoin",
-        ETH: "Ethereum",
-        XDG: "Dogecoin",
-    };
+// Fallback mapping for common cryptocurrency names
+const fallbackCurrencyNames = {
+    XDG: "Dogecoin",
+    BTC: "Bitcoin",
+    ETH: "Ethereum",
+    XRP: "Ripple",
+    LTC: "Litecoin",
+    ADA: "Cardano",
+};
 
-    for (const [code, name] of Object.entries(fallbackCurrencies)) {
-        const option = document.createElement('option');
-        option.value = code;
-        option.textContent = `${name} (${code})`;
-        currencySelect.appendChild(option);
-    }
-}
-
-// Modal visibility
+// Ensure modal is hidden on page load
 document.addEventListener('DOMContentLoaded', async () => {
     modal.classList.add('hidden');
     transactionInputs.classList.add('hidden');
+    console.log('Modal hidden on page load.');
+
+    // Populate the cryptocurrency dropdown
     await populateCurrencyDropdown();
 });
 
 // Show modal
 openModalButton.addEventListener('click', () => {
     modal.classList.remove('hidden');
+    transactionInputs.classList.add('hidden'); // Reset transaction inputs
+    buyRadio.checked = true; // Default to "Buy"
+    updateInputFields();
+    console.log('Modal shown.');
 });
 
 // Hide modal
 closeModalButton.addEventListener('click', () => {
     modal.classList.add('hidden');
     transactionInputs.classList.add('hidden');
+    console.log('Modal closed.');
 });
 
-// Update input fields
-buyRadio.addEventListener('click', () => {
-    priceLabel.textContent = 'Buy Price per Coin:';
-    amountLabel.textContent = 'USD to Spend:';
+// Update input fields based on transaction type
+function updateInputFields() {
+    if (buyRadio.checked) {
+        priceLabel.textContent = 'Buy Price per Coin:';
+        amountLabel.textContent = 'USD to Spend:';
+    } else {
+        priceLabel.textContent = 'Sell Price per Coin:';
+        amountLabel.textContent = 'Number of Coins to Sell:';
+    }
     transactionInputs.classList.remove('hidden');
-});
+}
 
-sellRadio.addEventListener('click', () => {
-    priceLabel.textContent = 'Sell Price per Coin:';
-    amountLabel.textContent = 'Number of Coins to Sell:';
-    transactionInputs.classList.remove('hidden');
-});
+// Add listeners for radio buttons
+buyRadio.addEventListener('change', updateInputFields);
+sellRadio.addEventListener('change', updateInputFields);
 
 // Add transaction logic
 addTransactionButton.addEventListener('click', () => {
     const currency = currencySelect.value;
+    const currencyName = portfolios.get(currency)?.name || currencySelect.options[currencySelect.selectedIndex].text;
     const price = parseFloat(priceInput.value);
     const amount = parseFloat(amountInput.value);
 
@@ -87,39 +93,66 @@ addTransactionButton.addEventListener('click', () => {
 
     // Create portfolio if it doesn't exist
     if (!portfolio) {
-        portfolio = { transactions: [] };
-        portfolios.set(currency, portfolio);
-        addCoinToPanel(currency);
+        portfolio = createPortfolio(currency, currencyName);
+        addCoinToPanel(currency, currencyName); // Add coin to the panel
     }
 
     const quantity = type === 'buy' ? amount / price : amount;
-    const fees = quantity * 0.004;
+    const fees = type === 'buy' ? amount * 0.004 : (quantity * price) * 0.004;
     const total = type === 'buy' ? amount + fees : (quantity * price) - fees;
 
-    portfolio.transactions.push({ type, price, amount, quantity, fees, total });
+    // Add transaction to the portfolio
+    const transaction = {
+        type,
+        price,
+        amount,
+        quantity,
+        fees,
+        total,
+    };
+    portfolio.transactions.push(transaction);
+
     updateTransactionTable(portfolio);
     updateDashboard(portfolio);
 
     modal.classList.add('hidden');
+    transactionInputs.classList.add('hidden');
+    console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
 
-// Add coin to panel
-function addCoinToPanel(currency) {
+// Create a portfolio for a cryptocurrency
+function createPortfolio(currency, currencyName) {
+    const portfolio = {
+        name: currencyName,
+        transactions: [],
+    };
+    portfolios.set(currency, portfolio);
+
+    console.log(`Portfolio created for ${currencyName}`);
+    return portfolio;
+}
+
+// Add a coin button to the panel
+function addCoinToPanel(currency, currencyName) {
     const button = document.createElement('button');
     button.className = 'coin-button';
-    button.textContent = currency;
+    button.textContent = currencyName;
+    button.title = currency;
     button.addEventListener('click', () => {
         activeCurrency = currency;
         const portfolio = portfolios.get(currency);
         updateTransactionTable(portfolio);
         updateDashboard(portfolio);
+        console.log(`Switched to portfolio: ${currencyName}`);
     });
     coinPanel.appendChild(button);
+    console.log(`Coin button added for ${currencyName}`);
 }
 
-// Update transaction table
+// Update the transaction table
 function updateTransactionTable(portfolio) {
-    transactionTable.innerHTML = '';
+    transactionTable.innerHTML = ''; // Clear the table
+
     portfolio.transactions.forEach((tx) => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -134,7 +167,7 @@ function updateTransactionTable(portfolio) {
     });
 }
 
-// Update dashboard
+// Update dashboard UI for the selected coin
 function updateDashboard(portfolio) {
     let totalCoins = 0;
     let totalSpent = 0;
@@ -149,6 +182,7 @@ function updateDashboard(portfolio) {
         } else {
             totalCoins -= tx.quantity;
             profitLoss += tx.total - tx.fees;
+            totalFees += tx.fees;
         }
     });
 
@@ -156,4 +190,26 @@ function updateDashboard(portfolio) {
     dashboardElements.totalCoins.textContent = totalCoins.toFixed(4);
     dashboardElements.totalFees.textContent = totalFees.toFixed(2);
     dashboardElements.profitLoss.textContent = profitLoss.toFixed(2);
+    console.log(`Dashboard updated for portfolio:`, portfolio.name);
+}
+
+// Populate dropdown with cryptocurrencies
+async function populateCurrencyDropdown() {
+    try {
+        const fallbackCurrencies = {
+            BTC: "Bitcoin",
+            ETH: "Ethereum",
+            XDG: "Dogecoin",
+        };
+
+        for (const [code, name] of Object.entries(fallbackCurrencies)) {
+            const option = document.createElement('option');
+            option.value = code;
+            option.textContent = `${name} (${code})`;
+            currencySelect.appendChild(option);
+        }
+        console.log('Dropdown populated with currencies.');
+    } catch (error) {
+        console.error("Failed to populate currency dropdown:", error);
+    }
 }
