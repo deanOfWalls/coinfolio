@@ -1,9 +1,9 @@
-const newCoinButton = document.getElementById('new-coin-button');
-const modal = document.getElementById('modal');
-const closeModalButton = document.getElementById('close-modal');
-const addCoinButton = document.getElementById('add-coin');
-const currencySelect = document.getElementById('currency-select');
-const tabsContainer = document.getElementById('tabs');
+const newCoinButton = document.getElementById('new-coin-button'); // Add Transaction Button
+const modal = document.getElementById('modal'); // Modal Container
+const closeModalButton = document.getElementById('close-modal'); // Modal Cancel Button
+const addCoinButton = document.getElementById('add-coin'); // Modal Add Button
+const currencySelect = document.getElementById('currency-select'); // Dropdown for Cryptocurrency
+const tabsContainer = document.getElementById('tabs'); // Tabs Container
 const dashboard = {
     totalCoins: 0,
     totalSpent: 0,
@@ -30,14 +30,14 @@ async function fetchAndPopulateCurrencies() {
         // Extract unique base currencies and clean their names
         for (const pair in assetPairs) {
             const base = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken abbreviation
-            const name = fallbackCurrencyNames[base] || base; // Fallback if Kraken doesn't provide a name
+            const name = base; // Placeholder for actual names (Kraken API doesn't provide names directly)
             currencies.set(base, name);
         }
 
         // Populate the dropdown
         currencySelect.innerHTML = '';
         Array.from(currencies.entries())
-            .sort((a, b) => a[1].localeCompare(b[1]))
+            .sort((a, b) => a[0].localeCompare(b[0]))
             .forEach(([code, name]) => {
                 const option = document.createElement('option');
                 option.value = code;
@@ -51,18 +51,18 @@ async function fetchAndPopulateCurrencies() {
 
 // Event listeners for modal
 newCoinButton.addEventListener('click', () => {
-    modal.classList.remove('hidden');
+    modal.classList.remove('hidden'); // Show the modal
 });
 
 closeModalButton.addEventListener('click', () => {
-    modal.classList.add('hidden');
+    modal.classList.add('hidden'); // Hide the modal
 });
 
 addCoinButton.addEventListener('click', () => {
     const currency = currencySelect.value;
     const currencyName = currencySelect.options[currencySelect.selectedIndex].text;
     addNewTab(currency, currencyName);
-    modal.classList.add('hidden');
+    modal.classList.add('hidden'); // Hide the modal after adding
 });
 
 // Add a new tab for a cryptocurrency
@@ -123,89 +123,7 @@ function createPortfolioSection(currency, currencyName) {
         </table>
     `;
 
-    const transactionType = section.querySelector('#transaction-type');
-    const priceLabel = section.querySelector('#price-label');
-    const usdLabel = section.querySelector('#usd-label');
-    const maxButton = section.querySelector('#max-coins');
-    const priceInput = section.querySelector('#price');
-    const usdInput = section.querySelector('#usdAmount');
-
-    transactionType.addEventListener('change', () => {
-        if (transactionType.value === 'sell') {
-            priceLabel.textContent = 'Sell Price per Coin:';
-            usdLabel.textContent = 'Number of Coins:';
-            maxButton.classList.remove('hidden');
-        } else {
-            priceLabel.textContent = 'Buy Price per Coin:';
-            usdLabel.textContent = 'USD to Spend:';
-            maxButton.classList.add('hidden');
-        }
-    });
-
-    maxButton.addEventListener('click', () => {
-        usdInput.value = dashboard.totalCoins.toFixed(4);
-    });
-
-    // Add transaction
-    section.querySelector('#add-transaction').addEventListener('click', () => {
-        const type = transactionType.value;
-        const price = parseFloat(priceInput.value);
-        const usdAmount = parseFloat(usdInput.value);
-
-        if (isNaN(price) || isNaN(usdAmount) || usdAmount <= 0) {
-            alert("Please enter valid inputs.");
-            return;
-        }
-
-        const quantity = type === 'buy' ? usdAmount / price : usdAmount;
-        const fees = usdAmount * defaultFeeRate;
-        const total = type === 'buy' ? usdAmount + fees : usdAmount - fees;
-
-        if (type === 'sell' && quantity > dashboard.totalCoins) {
-            alert("You cannot sell more coins than you own.");
-            return;
-        }
-
-        // Update KPIs
-        if (type === 'buy') {
-            dashboard.totalCoins += quantity;
-            dashboard.totalSpent += usdAmount;
-        } else {
-            dashboard.totalCoins -= quantity;
-            dashboard.profitLoss += usdAmount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
-        }
-        dashboard.totalFees += fees;
-
-        updateDashboard();
-
-        // Add row to table
-        const tbody = section.querySelector('tbody');
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${type}</td>
-            <td>${price.toFixed(2)}</td>
-            <td>${usdAmount.toFixed(2)}</td>
-            <td>${quantity.toFixed(4)}</td>
-            <td>${fees.toFixed(2)}</td>
-            <td>${total.toFixed(2)}</td>
-            <td><button class="remove-btn">Remove</button></td>
-        `;
-        tbody.appendChild(row);
-
-        row.querySelector('.remove-btn').addEventListener('click', () => {
-            tbody.removeChild(row);
-            if (type === 'buy') {
-                dashboard.totalCoins -= quantity;
-                dashboard.totalSpent -= usdAmount;
-            } else {
-                dashboard.totalCoins += quantity;
-                dashboard.profitLoss -= usdAmount - (quantity * (dashboard.totalSpent / dashboard.totalCoins));
-            }
-            dashboard.totalFees -= fees;
-            updateDashboard();
-        });
-    });
-
+    // Add logic for buy/sell and transaction handling here
     return section;
 }
 
