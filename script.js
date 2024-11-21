@@ -109,7 +109,7 @@ addTransactionButton.addEventListener("click", () => {
   updateTransactionTable(portfolio);
   updateDashboard(currency);
 
-  modal.classList.add("hidden");
+  modal.classList.add("hidden"); // Close the modal after adding the transaction
   transactionInputs.classList.add("hidden");
   console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
 });
