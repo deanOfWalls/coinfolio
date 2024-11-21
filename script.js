@@ -10,8 +10,8 @@ const priceInput = document.getElementById('price-input');
 const amountInput = document.getElementById('amount-input');
 const transactionTypeRadios = document.getElementsByName('transaction-type');
 const currencySelect = document.getElementById('currency-select');
-const ownedCoinsPanel = document.getElementById('owned-coins-panel'); // Panel for owned coins
-const transactionTable = document.getElementById('transaction-table'); // Table for transactions
+const ownedCoinsPanel = document.getElementById('owned-coins-panel');
+const transactionTable = document.getElementById('transaction-table');
 const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
     totalCoins: document.getElementById('total-coins'),
@@ -46,8 +46,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Show modal
 newCoinButton.addEventListener('click', () => {
     modal.classList.remove('hidden');
-    transactionInputs.classList.add('hidden'); // Hide inputs initially
-    console.log('Modal shown.');
+    transactionInputs.classList.remove('hidden'); // Show inputs
+    document.querySelector('input[name="transaction-type"][value="buy"]').checked = true; // Default to buy
+    priceLabel.textContent = 'Buy Price per Coin:';
+    amountLabel.textContent = 'USD to Spend:';
+    console.log('Modal shown with Buy loadout as default.');
 });
 
 // Hide modal
@@ -196,7 +199,7 @@ function editTransaction(portfolio, index) {
 function deleteTransaction(portfolio, index) {
     portfolio.transactions.splice(index, 1); // Remove transaction
     updateTransactionTable(portfolio);
-    updateDashboard(activeCurrency);
+    updateDashboard(activeCurrency); // Update dashboard immediately
     console.log(`Deleted transaction at index: ${index}`);
 }
 
