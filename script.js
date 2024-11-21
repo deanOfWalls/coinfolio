@@ -253,14 +253,13 @@ async function populateCurrencyDropdown() {
     const assetPairs = data.result;
     const currencies = new Map();
 
-    // Extract unique base currencies and map their names
     for (const pair in assetPairs) {
-      const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ""); // Clean Kraken's symbols
-      const name = fallbackCurrencyNames[baseCurrency] || baseCurrency; // Use fallback name or symbol
+      const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, "");
+      const name = fallbackCurrencyNames[baseCurrency] || baseCurrency;
       currencies.set(baseCurrency, name);
     }
 
-    currencySelect.innerHTML = ""; // Clear existing options
+    currencySelect.innerHTML = "";
     Array.from(currencies.entries())
       .sort((a, b) => a[1].localeCompare(b[1]))
       .forEach(([code, name]) => {
@@ -273,9 +272,7 @@ async function populateCurrencyDropdown() {
     console.log("Dropdown populated with currencies.");
   } catch (error) {
     console.error("Failed to populate currency dropdown:", error);
-
-    // Fallback to manual entries if API fails
-    currencySelect.innerHTML = ""; // Clear existing options
+    currencySelect.innerHTML = "";
     Object.entries(fallbackCurrencyNames).forEach(([code, name]) => {
       const option = document.createElement("option");
       option.value = code;
@@ -292,7 +289,7 @@ function showBuyFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Buy Price per Coin:";
   amountLabel.textContent = "USD to Spend:";
-  amountInput.value = ""; // Clear value
+  amountInput.value = "";
   console.log("Buy fields displayed.");
 }
 
