@@ -116,8 +116,6 @@ addTransactionButton.addEventListener("click", () => {
 function closeModal() {
   modal.classList.add("hidden");
   transactionInputs.classList.add("hidden");
-  priceInput.value = ""; // Reset inputs
-  amountInput.value = ""; // Reset inputs
   console.log("Modal closed.");
 }
 
@@ -237,18 +235,7 @@ function updateDashboard(currency) {
 async function populateCurrencyDropdown() {
   try {
     const response = await fetch("https://api.kraken.com/0/public/AssetPairs");
-
-    if (!response.ok) {
-      console.error(`API Error: ${response.statusText}`);
-      throw new Error("Failed to fetch data from Kraken API.");
-    }
-
     const data = await response.json();
-
-    if (data.error && data.error.length) {
-      console.error("API Error Response:", data.error);
-      throw new Error("Error returned from Kraken API.");
-    }
 
     const assetPairs = data.result;
     const currencies = new Map();
@@ -272,15 +259,6 @@ async function populateCurrencyDropdown() {
     console.log("Dropdown populated with currencies.");
   } catch (error) {
     console.error("Failed to populate currency dropdown:", error);
-    currencySelect.innerHTML = "";
-    Object.entries(fallbackCurrencyNames).forEach(([code, name]) => {
-      const option = document.createElement("option");
-      option.value = code;
-      option.textContent = `${name} (${code})`;
-      currencySelect.appendChild(option);
-    });
-
-    console.warn("Fallback currency names used for dropdown.");
   }
 }
 
