@@ -34,6 +34,7 @@ newCoinButton.addEventListener("click", () => {
   modal.classList.remove("hidden");
   transactionInputs.classList.add("hidden");
   priceInput.value = ""; // Clear price input
+  amountInput.value = ""; // Clear amount input
   showBuyFields(); // Default to "Buy"
 });
 
@@ -42,7 +43,8 @@ closeModalButton.addEventListener("click", () => closeModal());
 document.querySelectorAll('input[name="transaction-type"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
     const type = e.target.value;
-    priceInput.value = ""; // Clear price input on switch
+    priceInput.value = ""; // Clear price input
+    amountInput.value = ""; // Clear amount input
     type === "buy" ? showBuyFields() : showSellFields();
   });
 });
@@ -169,6 +171,48 @@ function updateDashboard(currency) {
     netProfit,
     totalLoss,
   });
+}
+
+function showBuyFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Buy Price per Coin:";
+  amountLabel.textContent = "USD to Spend:";
+  amountInput.value = ""; // Clear input
+}
+
+function showSellFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Sell Price per Coin:";
+  amountLabel.textContent = "Number of Coins to Sell:";
+  amountInput.value = ""; // Clear input before populating
+
+  if (!activeCurrency) {
+    console.error("No active currency selected. Cannot prepopulate coins to sell.");
+    return;
+  }
+
+  const portfolio = portfolios.get(activeCurrency);
+  if (!portfolio) {
+    console.error(`No portfolio found for active currency: ${activeCurrency}`);
+    return;
+  }
+
+  console.log(`Portfolio for ${activeCurrency}:`, portfolio.transactions);
+
+  // Calculate total coins held
+  const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
+    if (tx.type === "buy") return sum + tx.quantity;
+    if (tx.type === "sell") return sum - tx.quantity;
+    return sum;
+  }, 0);
+
+  if (totalCoinsHeld > 0) {
+    amountInput.value = totalCoinsHeld.toFixed(4); // Prepopulate the input
+    console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)} for ${activeCurrency}`);
+  } else {
+    amountInput.value = ""; // Clear if no coins are held
+    console.warn(`No coins available to sell for active currency: ${activeCurrency}`);
+  }
 }
 
 async function populateCurrencyDropdown() {
