@@ -230,3 +230,78 @@ function updateDashboard(currency) {
     totalLoss,
   });
 }
+
+// Populate dropdown with cryptocurrencies
+async function populateCurrencyDropdown() {
+  try {
+    const response = await fetch("https://api.kraken.com/0/public/AssetPairs");
+
+    if (!response.ok) {
+      console.error(`API Error: ${response.statusText}`);
+      throw new Error("Failed to fetch data from Kraken API.");
+    }
+
+    const data = await response.json();
+
+    if (data.error && data.error.length) {
+      console.error("API Error Response:", data.error);
+      throw new Error("Error returned from Kraken API.");
+    }
+
+    const assetPairs = data.result;
+    const currencies = new Map();
+
+    // Extract unique base currencies and map their names
+    for (const pair in assetPairs) {
+      const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ""); // Clean Kraken's symbols
+      const name = fallbackCurrencyNames[baseCurrency] || baseCurrency; // Use fallback name or symbol
+      currencies.set(baseCurrency, name);
+    }
+
+    currencySelect.innerHTML = ""; // Clear existing options
+    Array.from(currencies.entries())
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .forEach(([code, name]) => {
+        const option = document.createElement("option");
+        option.value = code;
+        option.textContent = `${name} (${code})`;
+        currencySelect.appendChild(option);
+      });
+
+    console.log("Dropdown populated with currencies.");
+  } catch (error) {
+    console.error("Failed to populate currency dropdown:", error);
+
+    // Fallback to manual entries if API fails
+    currencySelect.innerHTML = ""; // Clear existing options
+    Object.entries(fallbackCurrencyNames).forEach(([code, name]) => {
+      const option = document.createElement("option");
+      option.value = code;
+      option.textContent = `${name} (${code})`;
+      currencySelect.appendChild(option);
+    });
+
+    console.warn("Fallback currency names used for dropdown.");
+  }
+}
+
+// Show Buy Fields
+function showBuyFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Buy Price per Coin:";
+  amountLabel.textContent = "USD to Spend:";
+  amountInput.value = ""; // Clear value
+  console.log("Buy fields displayed.");
+}
+
+// Show Sell Fields
+function showSellFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Sell Price per Coin:";
+  amountLabel.textContent = "Number of Coins to Sell:";
+  const portfolio = portfolios.get(activeCurrency);
+  amountInput.value = portfolio
+    ? portfolio.transactions.reduce((sum, tx) => sum + tx.quantity, 0).toFixed(4)
+    : "";
+  console.log("Sell fields displayed.");
+}
