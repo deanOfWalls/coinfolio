@@ -110,7 +110,7 @@ function addCoinToOwnedPanel(currency, currencyName) {
 
 function updateTransactionTable(portfolio) {
   transactionTable.innerHTML = "";
-  portfolio.transactions.forEach((tx, index) => {
+  portfolio.transactions.forEach((tx) => {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${tx.type}</td>
@@ -125,11 +125,16 @@ function updateTransactionTable(portfolio) {
 
 function updateDashboard(currency) {
   const portfolio = portfolios.get(currency);
-  let totalCoins = 0,
-    totalSpent = 0,
-    totalFees = 0,
-    grossProfit = 0,
-    totalLoss = 0;
+  if (!portfolio) {
+    console.error("Portfolio not found for currency:", currency);
+    return;
+  }
+
+  let totalCoins = 0;
+  let totalSpent = 0;
+  let totalFees = 0;
+  let grossProfit = 0;
+  let totalLoss = 0;
 
   portfolio.transactions.forEach((tx) => {
     if (tx.type === "buy") {
@@ -142,7 +147,8 @@ function updateDashboard(currency) {
       totalFees += tx.fees;
 
       const costBasis = totalSpent / (totalCoins + tx.quantity) * tx.quantity;
-      totalLoss += Math.max(0, costBasis - tx.total - tx.fees);
+      const realizedLoss = Math.max(0, costBasis - tx.total - tx.fees);
+      totalLoss += realizedLoss;
     }
   });
 
@@ -150,7 +156,7 @@ function updateDashboard(currency) {
 
   dashboardElements.averagePrice.textContent =
     totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
-  dashboardElements.totalCoins.textContent = totalCoins.toFixed(4);
+  dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
   dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
   dashboardElements.grossProfitLoss.textContent = `$${grossProfit.toFixed(2)}`;
   dashboardElements.netProfitLoss.textContent = `$${netProfit.toFixed(2)}`;
@@ -191,69 +197,30 @@ function showBuyFields() {
   amountLabel.textContent = "USD to Spend:";
 }
 
-// Show Sell Fields
 function showSellFields() {
-    transactionInputs.classList.remove("hidden");
-    priceLabel.textContent = "Sell Price per Coin:";
-    amountLabel.textContent = "Number of Coins to Sell:";
-    
-    const portfolio = portfolios.get(activeCurrency);
-    const totalCoinsHeld = portfolio
-      ? portfolio.transactions.reduce((sum, tx) => 
-          sum + (tx.type === "buy" ? tx.quantity : -tx.quantity), 0)
-      : 0;
-  
-    amountInput.value = totalCoinsHeld > 0 ? totalCoinsHeld.toFixed(4) : "";
-    console.log("Sell fields displayed, pre-filled with total coins held:", totalCoinsHeld);
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Sell Price per Coin:";
+  amountLabel.textContent = "Number of Coins to Sell:";
+
+  if (!activeCurrency) {
+    console.error("No active currency selected for sell operation.");
+    amountInput.value = "";
+    return;
   }
-  
-  // Update Dashboard
-  function updateDashboard(currency) {
-    const portfolio = portfolios.get(currency);
-  
-    if (!portfolio) {
-      console.error("Portfolio not found for currency:", currency);
-      return;
-    }
-  
-    let totalCoins = 0;
-    let totalSpent = 0;
-    let totalFees = 0;
-    let grossProfit = 0;
-    let totalLoss = 0;
-  
-    portfolio.transactions.forEach((tx) => {
-      if (tx.type === "buy") {
-        totalCoins += tx.quantity;
-        totalSpent += tx.amount;
-        totalFees += tx.fees;
-      } else if (tx.type === "sell") {
-        totalCoins -= tx.quantity;
-        grossProfit += tx.total;
-        totalFees += tx.fees;
-  
-        const costBasis = totalSpent / (totalCoins + tx.quantity) * tx.quantity;
-        const realizedLoss = Math.max(0, costBasis - tx.total - tx.fees);
-        totalLoss += realizedLoss;
-      }
-    });
-  
-    const netProfit = grossProfit - totalSpent - totalFees;
-  
-    dashboardElements.averagePrice.textContent =
-      totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
-    dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
-    dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
-    dashboardElements.grossProfitLoss.textContent = `$${grossProfit.toFixed(2)}`;
-    dashboardElements.netProfitLoss.textContent = `$${netProfit.toFixed(2)}`;
-    dashboardElements.totalLoss.textContent = `$${totalLoss.toFixed(2)}`;
-  
-    console.log(`Dashboard updated for ${currency}:`, {
-      totalCoins,
-      totalSpent,
-      totalFees,
-      grossProfit,
-      netProfit,
-      totalLoss,
-    });
+
+  const portfolio = portfolios.get(activeCurrency);
+  if (!portfolio) {
+    console.error("Portfolio not found for active currency:", activeCurrency);
+    amountInput.value = "";
+    return;
   }
+
+  const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
+    if (tx.type === "buy") return sum + tx.quantity;
+    if (tx.type === "sell") return sum - tx.quantity;
+    return sum;
+  }, 0);
+
+  amountInput.value = totalCoinsHeld > 0 ? totalCoinsHeld.toFixed(4) : "";
+  console.log("Sell fields displayed, pre-filled with total coins held:", totalCoinsHeld);
+}
