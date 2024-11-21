@@ -30,6 +30,9 @@ const fallbackCurrencyNames = {
   XRP: "Ripple",
   ADA: "Cardano",
   DOGE: "Dogecoin",
+  BCH: "Bitcoin Cash",
+  XMR: "Monero",
+  DOT: "Polkadot",
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
