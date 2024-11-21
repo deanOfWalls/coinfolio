@@ -121,6 +121,56 @@ function updateTransactionTable(portfolio) {
   });
 }
 
+function updateDashboard(currency) {
+  const portfolio = portfolios.get(currency);
+
+  if (!portfolio) {
+    console.error("No portfolio found for dashboard update:", currency);
+    return;
+  }
+
+  let totalCoins = 0,
+    totalSpent = 0,
+    totalFees = 0,
+    grossProfit = 0,
+    totalLoss = 0;
+
+  portfolio.transactions.forEach((tx) => {
+    if (tx.type === "buy") {
+      totalCoins += tx.quantity;
+      totalSpent += tx.amount;
+      totalFees += tx.fees;
+    } else if (tx.type === "sell") {
+      totalCoins -= tx.quantity;
+      grossProfit += tx.total;
+      totalFees += tx.fees;
+
+      const costBasis = totalSpent / (totalCoins + tx.quantity) * tx.quantity;
+      const realizedLoss = Math.max(0, costBasis - tx.total - tx.fees);
+      totalLoss += realizedLoss;
+    }
+  });
+
+  const netProfit = grossProfit - totalSpent - totalFees;
+
+  dashboardElements.averagePrice.textContent =
+    totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
+  dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
+  dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
+  dashboardElements.grossProfitLoss.textContent = `$${grossProfit.toFixed(2)}`;
+  dashboardElements.netProfitLoss.textContent = `$${netProfit.toFixed(2)}`;
+  dashboardElements.totalLoss.textContent = `$${totalLoss.toFixed(2)}`;
+
+  console.log(`Dashboard updated for ${currency}:`, {
+    totalCoins,
+    totalSpent,
+    totalFees,
+    grossProfit,
+    netProfit,
+    totalLoss,
+  });
+}
+
 function showBuyFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Buy Price per Coin:";
