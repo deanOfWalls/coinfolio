@@ -33,7 +33,7 @@ const fallbackCurrencyNames = {
   BCH: "Bitcoin Cash",
   XMR: "Monero",
   DOT: "Polkadot",
-  XDG: "Dogecoin",
+  XDG: "Dogecoin", // Example you provided
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -62,7 +62,7 @@ document.querySelectorAll('input[name="transaction-type"]').forEach((radio) => {
 });
 
 addTransactionButton.addEventListener("click", () => {
-  const currency = activeCurrency || currencySelect.value;
+  const currency = activeCurrency || currencySelect.value; // Use dropdown fallback
   const price = parseFloat(priceInput.value);
   const amount = parseFloat(amountInput.value);
 
@@ -111,7 +111,7 @@ function addCoinToOwnedPanel(currency) {
   button.textContent = currency;
   button.title = fallbackCurrencyNames[currency] || currency;
   button.addEventListener("click", () => {
-    activeCurrency = currency;
+    activeCurrency = currency; // Set active currency
     console.log("Active currency set to:", activeCurrency);
     const portfolio = portfolios.get(currency);
     updateTransactionTable(portfolio);
@@ -196,16 +196,17 @@ function showSellFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Sell Price per Coin:";
   amountLabel.textContent = "Number of Coins to Sell:";
-  amountInput.value = ""; // Clear input before populating
 
+  // Ensure activeCurrency is set
   if (!activeCurrency) {
-    console.error("No active currency selected. Cannot prepopulate coins to sell.");
-    return;
+    activeCurrency = currencySelect.value;
+    console.log("Fallback: Active currency set from dropdown:", activeCurrency);
   }
 
   const portfolio = portfolios.get(activeCurrency);
   if (!portfolio) {
     console.error(`No portfolio found for active currency: ${activeCurrency}`);
+    amountInput.value = ""; // Clear field
     return;
   }
 
@@ -216,13 +217,8 @@ function showSellFields() {
     return sum;
   }, 0);
 
-  if (totalCoinsHeld > 0) {
-    amountInput.value = totalCoinsHeld.toFixed(4); // Assign total coins held
-    console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)}`);
-  } else {
-    amountInput.value = ""; // Clear if no coins are held
-    console.warn(`No coins available to sell for active currency: ${activeCurrency}`);
-  }
+  amountInput.value = totalCoinsHeld > 0 ? totalCoinsHeld.toFixed(4) : "";
+  console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)}`);
 }
 
 async function populateCurrencyDropdown() {
