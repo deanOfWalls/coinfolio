@@ -163,6 +163,7 @@ function updateTransactionTable(portfolio) {
             <td>$${tx.fees.toFixed(2)}</td>
             <td>$${tx.total.toFixed(2)}</td>
             <td>
+                <button class="edit-transaction" data-index="${index}">✏️</button>
                 <button class="delete-transaction" data-index="${index}">🗑️</button>
             </td>
         `;
@@ -191,6 +192,9 @@ function updateDashboard(currency) {
   let totalCoins = 0;
   let totalSpent = 0;
   let totalFees = 0;
+  let grossProfitLoss = 0;
+  let netProfitLoss = 0;
+  let totalLoss = 0;
 
   portfolio.transactions.forEach((tx) => {
     if (tx.type === "buy") {
@@ -199,19 +203,37 @@ function updateDashboard(currency) {
       totalFees += tx.fees;
     } else if (tx.type === "sell") {
       totalCoins -= tx.quantity;
+      grossProfitLoss += tx.total;
+      totalFees += tx.fees;
+
+      const loss = totalSpent / (totalCoins + tx.quantity) * tx.quantity - tx.total;
+      if (loss > 0) totalLoss += loss + tx.fees;
     }
   });
+
+  netProfitLoss = grossProfitLoss - totalSpent - totalFees;
 
   dashboardElements.averagePrice.textContent =
     totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
   dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
   dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
+  dashboardElements.grossProfitLoss.textContent = `$${grossProfitLoss.toFixed(2)}`;
+  dashboardElements.netProfitLoss.textContent = `$${netProfitLoss.toFixed(2)}`;
+  dashboardElements.totalLoss.textContent = `$${totalLoss.toFixed(2)}`;
 
   console.log(`Dashboard updated for ${currency}:`, {
     totalCoins,
     totalSpent,
     totalFees,
+    grossProfitLoss,
+    netProfitLoss,
+    totalLoss,
   });
+}
+
+// Populate dropdown with cryptocurrencies
+async function populateCurrencyDropdown() {
+  // Fetch logic remains unchanged
 }
 
 // Show Buy Fields
@@ -230,7 +252,7 @@ function showSellFields() {
   amountLabel.textContent = "Number of Coins to Sell:";
   const portfolio = portfolios.get(activeCurrency);
   amountInput.value = portfolio
-    ? portfolio.transactions.reduce((sum, tx) => sum + tx.quantity, 0).toFixed(4)
+    ? portfolio.transactions.reduce((sum, tx) => sum + (tx.type === "buy" ? tx.quantity : 0), 0).toFixed(4)
     : "";
   console.log("Sell fields displayed.");
 }
