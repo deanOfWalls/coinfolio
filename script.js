@@ -163,7 +163,6 @@ function updateTransactionTable(portfolio) {
             <td>$${tx.fees.toFixed(2)}</td>
             <td>$${tx.total.toFixed(2)}</td>
             <td>
-                <button class="edit-transaction" data-index="${index}">✏️</button>
                 <button class="delete-transaction" data-index="${index}">🗑️</button>
             </td>
         `;
@@ -192,9 +191,6 @@ function updateDashboard(currency) {
   let totalCoins = 0;
   let totalSpent = 0;
   let totalFees = 0;
-  let grossProfitLoss = 0;
-  let netProfitLoss = 0;
-  let totalLoss = 0;
 
   portfolio.transactions.forEach((tx) => {
     if (tx.type === "buy") {
@@ -203,86 +199,19 @@ function updateDashboard(currency) {
       totalFees += tx.fees;
     } else if (tx.type === "sell") {
       totalCoins -= tx.quantity;
-      grossProfitLoss += tx.total;
-      totalFees += tx.fees;
-
-      const loss = totalSpent / (totalCoins + tx.quantity) * tx.quantity - tx.total;
-      if (loss > 0) totalLoss += loss + tx.fees;
     }
   });
-
-  netProfitLoss = grossProfitLoss - totalSpent - totalFees;
 
   dashboardElements.averagePrice.textContent =
     totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
   dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
   dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
-  dashboardElements.grossProfitLoss.textContent = `$${grossProfitLoss.toFixed(2)}`;
-  dashboardElements.netProfitLoss.textContent = `$${netProfitLoss.toFixed(2)}`;
-  dashboardElements.totalLoss.textContent = `$${totalLoss.toFixed(2)}`;
 
   console.log(`Dashboard updated for ${currency}:`, {
     totalCoins,
     totalSpent,
     totalFees,
-    grossProfitLoss,
-    netProfitLoss,
-    totalLoss,
   });
-}
-
-// Populate dropdown with cryptocurrencies
-async function populateCurrencyDropdown() {
-  try {
-    const response = await fetch("https://api.kraken.com/0/public/AssetPairs");
-
-    if (!response.ok) {
-      console.error(`API Error: ${response.statusText}`);
-      throw new Error("Failed to fetch data from Kraken API.");
-    }
-
-    const data = await response.json();
-
-    if (data.error && data.error.length) {
-      console.error("API Error Response:", data.error);
-      throw new Error("Error returned from Kraken API.");
-    }
-
-    const assetPairs = data.result;
-    const currencies = new Map();
-
-    // Extract unique base currencies and map their names
-    for (const pair in assetPairs) {
-      const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ""); // Clean Kraken's symbols
-      const name = fallbackCurrencyNames[baseCurrency] || baseCurrency; // Use fallback name or symbol
-      currencies.set(baseCurrency, name);
-    }
-
-    currencySelect.innerHTML = ""; // Clear existing options
-    Array.from(currencies.entries())
-      .sort((a, b) => a[1].localeCompare(b[1]))
-      .forEach(([code, name]) => {
-        const option = document.createElement("option");
-        option.value = code;
-        option.textContent = `${name} (${code})`;
-        currencySelect.appendChild(option);
-      });
-
-    console.log("Dropdown populated with currencies.");
-  } catch (error) {
-    console.error("Failed to populate currency dropdown:", error);
-
-    // Fallback to manual entries if API fails
-    currencySelect.innerHTML = ""; // Clear existing options
-    Object.entries(fallbackCurrencyNames).forEach(([code, name]) => {
-      const option = document.createElement("option");
-      option.value = code;
-      option.textContent = `${name} (${code})`;
-      currencySelect.appendChild(option);
-    });
-
-    console.warn("Fallback currency names used for dropdown.");
-  }
 }
 
 // Show Buy Fields
