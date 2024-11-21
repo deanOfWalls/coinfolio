@@ -23,14 +23,6 @@ const dashboardElements = {
 // Dashboard state
 let activeCurrency = null;
 const portfolios = new Map();
-const fallbackCurrencyNames = {
-  XDG: "Dogecoin",
-  BTC: "Bitcoin",
-  ETH: "Ethereum",
-  XRP: "Ripple",
-  LTC: "Litecoin",
-  ADA: "Cardano",
-};
 
 document.addEventListener("DOMContentLoaded", async () => {
   modal.classList.add("hidden");
@@ -41,8 +33,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 newCoinButton.addEventListener("click", () => {
   modal.classList.remove("hidden");
   transactionInputs.classList.add("hidden");
-  priceInput.value = ""; // Clear the price input field
-  showBuyFields();
+  priceInput.value = ""; // Clear the price input
+  showBuyFields(); // Default to Buy
 });
 
 closeModalButton.addEventListener("click", () => closeModal());
@@ -50,7 +42,7 @@ closeModalButton.addEventListener("click", () => closeModal());
 document.querySelectorAll('input[name="transaction-type"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
     const type = e.target.value;
-    priceInput.value = ""; // Clear the price input field when switching types
+    priceInput.value = ""; // Clear the price input
     type === "buy" ? showBuyFields() : showSellFields();
   });
 });
@@ -69,8 +61,8 @@ addTransactionButton.addEventListener("click", () => {
   let portfolio = portfolios.get(currency);
 
   if (!portfolio) {
-    portfolio = createPortfolio(currency, currency);
-    addCoinToOwnedPanel(currency, currency);
+    portfolio = createPortfolio(currency);
+    addCoinToOwnedPanel(currency);
   }
 
   const quantity = type === "buy" ? amount / price : amount;
@@ -90,17 +82,17 @@ function closeModal() {
   transactionInputs.classList.add("hidden");
 }
 
-function createPortfolio(currency, currencyName) {
-  const portfolio = { name: currencyName, transactions: [] };
+function createPortfolio(currency) {
+  const portfolio = { name: currency, transactions: [] };
   portfolios.set(currency, portfolio);
   return portfolio;
 }
 
-function addCoinToOwnedPanel(currency, currencyName) {
+function addCoinToOwnedPanel(currency) {
   const button = document.createElement("button");
   button.className = "coin-button";
   button.textContent = currency;
-  button.title = currencyName;
+  button.title = currency;
   button.addEventListener("click", () => {
     activeCurrency = currency;
     console.log("Active currency set to:", activeCurrency);
@@ -126,44 +118,41 @@ function updateTransactionTable(portfolio) {
   });
 }
 
-function updateDashboard(currency) {
-  const portfolio = portfolios.get(currency);
-  if (!portfolio) {
-    console.error("Portfolio not found for currency:", currency);
+function showBuyFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Buy Price per Coin:";
+  amountLabel.textContent = "USD to Spend:";
+  amountInput.value = ""; // Clear the field
+}
+
+function showSellFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Sell Price per Coin:";
+  amountLabel.textContent = "Number of Coins to Sell:";
+  amountInput.value = ""; // Clear the field before updating
+
+  if (!activeCurrency) {
+    console.error("No active currency selected.");
     return;
   }
 
-  let totalCoins = 0;
-  let totalSpent = 0;
-  let totalFees = 0;
-  let grossProfit = 0;
-  let totalLoss = 0;
+  const portfolio = portfolios.get(activeCurrency);
+  if (!portfolio) {
+    console.error("No portfolio found for active currency:", activeCurrency);
+    return;
+  }
 
-  portfolio.transactions.forEach((tx) => {
-    if (tx.type === "buy") {
-      totalCoins += tx.quantity;
-      totalSpent += tx.amount;
-      totalFees += tx.fees;
-    } else if (tx.type === "sell") {
-      totalCoins -= tx.quantity;
-      grossProfit += tx.total;
-      totalFees += tx.fees;
+  const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
+    return tx.type === "buy" ? sum + tx.quantity : sum - tx.quantity;
+  }, 0);
 
-      const costBasis = totalSpent / (totalCoins + tx.quantity) * tx.quantity;
-      const realizedLoss = Math.max(0, costBasis - tx.total - tx.fees);
-      totalLoss += realizedLoss;
-    }
-  });
-
-  const netProfit = grossProfit - totalSpent - totalFees;
-
-  dashboardElements.averagePrice.textContent =
-    totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
-  dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
-  dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
-  dashboardElements.grossProfitLoss.textContent = `$${grossProfit.toFixed(2)}`;
-  dashboardElements.netProfitLoss.textContent = `$${netProfit.toFixed(2)}`;
-  dashboardElements.totalLoss.textContent = `$${totalLoss.toFixed(2)}`;
+  if (totalCoinsHeld > 0) {
+    amountInput.value = totalCoinsHeld.toFixed(4);
+    console.log(`Prepopulated with total coins held: ${totalCoinsHeld.toFixed(4)} for ${activeCurrency}.`);
+  } else {
+    console.warn(`No coins available for ${activeCurrency}.`);
+    amountInput.value = "";
+  }
 }
 
 async function populateCurrencyDropdown() {
@@ -172,62 +161,23 @@ async function populateCurrencyDropdown() {
     const data = await response.json();
 
     const assetPairs = data.result;
-    const currencies = new Map();
+    const currencies = new Set();
 
     for (const pair in assetPairs) {
       const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, "");
-      const name = fallbackCurrencyNames[baseCurrency] || baseCurrency;
-      currencies.set(baseCurrency, name);
+      currencies.add(baseCurrency);
     }
 
     currencySelect.innerHTML = "";
-    Array.from(currencies.entries())
-      .sort((a, b) => a[1].localeCompare(b[1]))
-      .forEach(([code, name]) => {
+    Array.from(currencies)
+      .sort()
+      .forEach((code) => {
         const option = document.createElement("option");
         option.value = code;
-        option.textContent = `${name} (${code})`;
+        option.textContent = code;
         currencySelect.appendChild(option);
       });
   } catch (error) {
     console.error("Failed to populate currency dropdown:", error);
-  }
-}
-
-function showBuyFields() {
-  transactionInputs.classList.remove("hidden");
-  priceLabel.textContent = "Buy Price per Coin:";
-  amountLabel.textContent = "USD to Spend:";
-  amountInput.value = ""; // Clear the amount input field for buy layout
-}
-
-function showSellFields() {
-  transactionInputs.classList.remove("hidden");
-  priceLabel.textContent = "Sell Price per Coin:";
-  amountLabel.textContent = "Number of Coins to Sell:";
-  amountInput.value = ""; // Clear the field before setting
-
-  if (!activeCurrency) {
-    console.error("No active currency selected for sell operation.");
-    return;
-  }
-
-  const portfolio = portfolios.get(activeCurrency);
-  if (!portfolio) {
-    console.error("Portfolio not found for active currency:", activeCurrency);
-    return;
-  }
-
-  const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
-    if (tx.type === "buy") return sum + tx.quantity;
-    if (tx.type === "sell") return sum - tx.quantity;
-    return sum;
-  }, 0);
-
-  if (totalCoinsHeld > 0) {
-    amountInput.value = totalCoinsHeld.toFixed(4);
-    console.log(`Sell fields prepopulated: ${totalCoinsHeld.toFixed(4)} coins held for ${activeCurrency}.`);
-  } else {
-    console.warn(`No coins available to sell for ${activeCurrency}.`);
   }
 }
