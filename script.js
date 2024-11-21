@@ -16,7 +16,8 @@ const dashboardElements = {
     averagePrice: document.getElementById('average-price'),
     totalCoins: document.getElementById('total-coins'),
     totalFees: document.getElementById('total-fees'),
-    profitLoss: document.getElementById('profit-loss'),
+    grossProfitLoss: document.getElementById('gross-profit-loss'),
+    netProfitLoss: document.getElementById('net-profit-loss'),
 };
 
 // Dashboard state
@@ -67,9 +68,12 @@ transactionTypeRadios.forEach((radio) => {
         if (radio.value === 'buy') {
             priceLabel.textContent = 'Buy Price per Coin:';
             amountLabel.textContent = 'USD to Spend:';
+            amountInput.value = ''; // Clear value
         } else if (radio.value === 'sell') {
             priceLabel.textContent = 'Sell Price per Coin:';
             amountLabel.textContent = 'Number of Coins to Sell:';
+            const portfolio = portfolios.get(activeCurrency);
+            amountInput.value = portfolio ? portfolio.totalCoins.toFixed(4) : ''; // Default to total coins held
         }
         console.log(`Transaction type changed to: ${radio.value}`);
     });
@@ -124,6 +128,10 @@ function createPortfolio(currency, currencyName) {
     const portfolio = {
         name: currencyName,
         transactions: [],
+        totalCoins: 0,
+        totalSpent: 0,
+        totalFees: 0,
+        grossProfitLoss: 0,
     };
     portfolios.set(currency, portfolio);
 
@@ -215,7 +223,7 @@ function updateDashboard(currency) {
     let totalCoins = 0;
     let totalSpent = 0;
     let totalFees = 0;
-    let profitLoss = 0;
+    let grossProfitLoss = 0;
 
     portfolio.transactions.forEach((tx) => {
         if (tx.type === 'buy') {
@@ -224,23 +232,28 @@ function updateDashboard(currency) {
             totalFees += tx.fees;
         } else if (tx.type === 'sell') {
             totalCoins -= tx.quantity;
-            profitLoss += tx.total - tx.fees;
+            grossProfitLoss += tx.total - tx.fees;
             totalFees += tx.fees;
         }
     });
 
+    const netProfitLoss = grossProfitLoss - totalSpent;
+
     // Update the dashboard display
     dashboardElements.averagePrice.textContent =
         totalCoins > 0 ? (totalSpent / totalCoins).toFixed(2) : '-';
-    dashboardElements.totalCoins.textContent = totalCoins.toFixed(4);
-    dashboardElements.totalFees.textContent = totalFees.toFixed(2);
-    dashboardElements.profitLoss.textContent = profitLoss.toFixed(2);
+    dashboardElements.totalCoins.textContent =
+        totalCoins > 0 ? totalCoins.toFixed(4) : '0';
+    dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
+    dashboardElements.grossProfitLoss.textContent = `$${grossProfitLoss.toFixed(2)}`;
+    dashboardElements.netProfitLoss.textContent = `$${netProfitLoss.toFixed(2)}`;
 
     console.log(`Dashboard updated for ${currency}:`, {
         totalCoins,
         totalSpent,
         totalFees,
-        profitLoss,
+        grossProfitLoss,
+        netProfitLoss,
     });
 }
 
@@ -248,21 +261,30 @@ function updateDashboard(currency) {
 async function populateCurrencyDropdown() {
     try {
         const response = await fetch('https://api.kraken.com/0/public/AssetPairs');
-        if (!response.ok) throw new Error('Failed to fetch data from Kraken API.');
+
+        if (!response.ok) {
+            console.error(`API Error: ${response.statusText}`);
+            throw new Error('Failed to fetch data from Kraken API.');
+        }
+
         const data = await response.json();
 
-        if (data.error && data.error.length) throw new Error('Error returned from Kraken API.');
+        if (data.error && data.error.length) {
+            console.error("API Error Response:", data.error);
+            throw new Error('Error returned from Kraken API.');
+        }
 
         const assetPairs = data.result;
         const currencies = new Map();
 
+        // Extract unique base currencies and map their names
         for (const pair in assetPairs) {
-            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, '');
-            const name = fallbackCurrencyNames[baseCurrency] || baseCurrency;
+            const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, ''); // Clean Kraken's symbols
+            const name = fallbackCurrencyNames[baseCurrency] || baseCurrency; // Use fallback name or symbol
             currencies.set(baseCurrency, name);
         }
 
-        currencySelect.innerHTML = '';
+        currencySelect.innerHTML = ''; // Clear existing options
         Array.from(currencies.entries())
             .sort((a, b) => a[1].localeCompare(b[1]))
             .forEach(([code, name]) => {
