@@ -23,6 +23,14 @@ const dashboardElements = {
 // Dashboard state
 let activeCurrency = null;
 const portfolios = new Map();
+const fallbackCurrencyNames = {
+  BTC: "Bitcoin",
+  ETH: "Ethereum",
+  LTC: "Litecoin",
+  XRP: "Ripple",
+  ADA: "Cardano",
+  DOGE: "Dogecoin",
+};
 
 document.addEventListener("DOMContentLoaded", async () => {
   modal.classList.add("hidden");
@@ -97,7 +105,7 @@ function addCoinToOwnedPanel(currency) {
   const button = document.createElement("button");
   button.className = "coin-button";
   button.textContent = currency;
-  button.title = currency;
+  button.title = fallbackCurrencyNames[currency] || currency;
   button.addEventListener("click", () => {
     activeCurrency = currency;
     console.log("Active currency set to:", activeCurrency);
@@ -173,28 +181,73 @@ function updateDashboard(currency) {
   });
 }
 
+function showBuyFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Buy Price per Coin:";
+  amountLabel.textContent = "USD to Spend:";
+  amountInput.value = ""; // Clear input
+}
+
+function showSellFields() {
+  transactionInputs.classList.remove("hidden");
+  priceLabel.textContent = "Sell Price per Coin:";
+  amountLabel.textContent = "Number of Coins to Sell:";
+  amountInput.value = ""; // Clear input before populating
+
+  if (!activeCurrency) {
+    console.error("No active currency selected. Cannot prepopulate coins to sell.");
+    return;
+  }
+
+  const portfolio = portfolios.get(activeCurrency);
+  if (!portfolio) {
+    console.error(`No portfolio found for active currency: ${activeCurrency}`);
+    return;
+  }
+
+  console.log(`Portfolio transactions for ${activeCurrency}:`, portfolio.transactions);
+
+  // Calculate total coins held
+  const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
+    if (tx.type === "buy") return sum + tx.quantity;
+    if (tx.type === "sell") return sum - tx.quantity;
+    return sum;
+  }, 0);
+
+  if (totalCoinsHeld > 0) {
+    amountInput.value = totalCoinsHeld.toFixed(4); // Prepopulate the input
+    console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)} for ${activeCurrency}`);
+  } else {
+    amountInput.value = ""; // Clear if no coins are held
+    console.warn(`No coins available to sell for active currency: ${activeCurrency}`);
+  }
+}
+
 async function populateCurrencyDropdown() {
   try {
     const response = await fetch("https://api.kraken.com/0/public/AssetPairs");
     const data = await response.json();
 
     const assetPairs = data.result;
-    const currencies = new Set();
+    const currencies = new Map();
 
     for (const pair in assetPairs) {
       const baseCurrency = assetPairs[pair].base.replace(/^[XZ]/, "");
-      currencies.add(baseCurrency);
+      const readableName = fallbackCurrencyNames[baseCurrency] || baseCurrency;
+      currencies.set(baseCurrency, readableName);
     }
 
     currencySelect.innerHTML = "";
-    Array.from(currencies)
-      .sort()
-      .forEach((code) => {
+    Array.from(currencies.entries())
+      .sort((a, b) => a[1].localeCompare(b[1]))
+      .forEach(([code, name]) => {
         const option = document.createElement("option");
         option.value = code;
-        option.textContent = code;
+        option.textContent = `${name} (${code})`;
         currencySelect.appendChild(option);
       });
+
+    console.log("Dropdown populated with currencies.");
   } catch (error) {
     console.error("Failed to populate currency dropdown:", error);
   }
