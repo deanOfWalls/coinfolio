@@ -33,8 +33,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 newCoinButton.addEventListener("click", () => {
   modal.classList.remove("hidden");
   transactionInputs.classList.add("hidden");
-  priceInput.value = ""; // Clear the price input
-  showBuyFields(); // Default to Buy
+  priceInput.value = ""; // Clear price input
+  showBuyFields(); // Default to "Buy"
 });
 
 closeModalButton.addEventListener("click", () => closeModal());
@@ -42,7 +42,7 @@ closeModalButton.addEventListener("click", () => closeModal());
 document.querySelectorAll('input[name="transaction-type"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
     const type = e.target.value;
-    priceInput.value = ""; // Clear the price input
+    priceInput.value = ""; // Clear price input on switch
     type === "buy" ? showBuyFields() : showSellFields();
   });
 });
@@ -71,11 +71,12 @@ addTransactionButton.addEventListener("click", () => {
 
   portfolio.transactions.push({ type, price, amount, quantity, fees, total });
 
+  console.log("Transaction added successfully:", { type, price, amount, quantity, fees, total });
+
   updateTransactionTable(portfolio);
   updateDashboard(currency);
 
-  console.log("Transaction added successfully. Closing modal...");
-  closeModal(); // Close modal after adding a transaction
+  closeModal(); // Close modal after adding transaction
 });
 
 function closeModal() {
@@ -124,14 +125,14 @@ function showBuyFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Buy Price per Coin:";
   amountLabel.textContent = "USD to Spend:";
-  amountInput.value = ""; // Clear the field
+  amountInput.value = ""; // Clear input
 }
 
 function showSellFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Sell Price per Coin:";
   amountLabel.textContent = "Number of Coins to Sell:";
-  amountInput.value = ""; // Clear the field before updating
+  amountInput.value = ""; // Clear input before populating
 
   if (!activeCurrency) {
     console.error("No active currency selected.");
