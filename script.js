@@ -116,6 +116,8 @@ addTransactionButton.addEventListener("click", () => {
 function closeModal() {
   modal.classList.add("hidden");
   transactionInputs.classList.add("hidden");
+  priceInput.value = ""; // Reset inputs
+  amountInput.value = ""; // Reset inputs
   console.log("Modal closed.");
 }
 
