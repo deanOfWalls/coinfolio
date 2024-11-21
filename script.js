@@ -21,10 +21,8 @@ const dashboardElements = {
 };
 
 // Dashboard state
-let activeCurrency = null; // Currently selected coin
-const portfolios = new Map(); // Map to track individual portfolios for cryptocurrencies
-
-// Fallback mapping for common cryptocurrency names
+let activeCurrency = null;
+const portfolios = new Map();
 const fallbackCurrencyNames = {
   XDG: "Dogecoin",
   BTC: "Bitcoin",
@@ -34,45 +32,29 @@ const fallbackCurrencyNames = {
   ADA: "Cardano",
 };
 
-// Ensure modal is hidden on page load
 document.addEventListener("DOMContentLoaded", async () => {
   modal.classList.add("hidden");
   transactionInputs.classList.add("hidden");
-  console.log("Modal hidden on page load.");
-
-  // Populate the cryptocurrency dropdown
   await populateCurrencyDropdown();
 });
 
-// Show modal
 newCoinButton.addEventListener("click", () => {
   modal.classList.remove("hidden");
   transactionInputs.classList.add("hidden");
-  showBuyFields(); // Show buy fields by default
-  console.log("Modal shown.");
+  showBuyFields();
 });
 
-// Hide modal
-closeModalButton.addEventListener("click", () => {
-  closeModal(); // Reuse close modal logic
-});
+closeModalButton.addEventListener("click", () => closeModal());
 
-// Handle Buy/Sell radio button toggle
 document.querySelectorAll('input[name="transaction-type"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
     const type = e.target.value;
-    if (type === "buy") {
-      showBuyFields();
-    } else if (type === "sell") {
-      showSellFields();
-    }
+    type === "buy" ? showBuyFields() : showSellFields();
   });
 });
 
-// Add transaction logic
 addTransactionButton.addEventListener("click", () => {
-  const currency = activeCurrency || currencySelect.value; // Handle active tab or dropdown selection
-  const currencyName = portfolios.get(currency)?.name || currency;
+  const currency = activeCurrency || currencySelect.value;
   const price = parseFloat(priceInput.value);
   const amount = parseFloat(amountInput.value);
 
@@ -84,117 +66,70 @@ addTransactionButton.addEventListener("click", () => {
   const type = priceLabel.textContent.includes("Buy") ? "buy" : "sell";
   let portfolio = portfolios.get(currency);
 
-  // Create the portfolio if it doesn't exist
   if (!portfolio) {
-    portfolio = createPortfolio(currency, currencyName);
-    addCoinToOwnedPanel(currency, currencyName); // Add the coin to the panel
+    portfolio = createPortfolio(currency, currency);
+    addCoinToOwnedPanel(currency, currency);
   }
 
   const quantity = type === "buy" ? amount / price : amount;
   const fees = type === "buy" ? amount * 0.004 : quantity * price * 0.004;
   const total = type === "buy" ? amount + fees : quantity * price - fees;
 
-  // Add transaction to the portfolio's transaction list
-  const transaction = {
-    type,
-    price,
-    amount,
-    quantity,
-    fees,
-    total,
-  };
-  portfolio.transactions.push(transaction);
+  portfolio.transactions.push({ type, price, amount, quantity, fees, total });
 
   updateTransactionTable(portfolio);
   updateDashboard(currency);
 
-  closeModal(); // Close the modal after adding the transaction
-  console.log(`Transaction added: ${type} ${currency}, Price: ${price}, Amount: ${amount}`);
+  closeModal();
 });
 
-// Close modal logic
 function closeModal() {
   modal.classList.add("hidden");
   transactionInputs.classList.add("hidden");
-  console.log("Modal closed.");
 }
 
-// Create a portfolio for a cryptocurrency
 function createPortfolio(currency, currencyName) {
-  const portfolio = {
-    name: currencyName,
-    transactions: [],
-  };
+  const portfolio = { name: currencyName, transactions: [] };
   portfolios.set(currency, portfolio);
-
-  console.log(`Portfolio created for ${currencyName}`);
   return portfolio;
 }
 
-// Add a coin button to the "Owned Coins" panel
 function addCoinToOwnedPanel(currency, currencyName) {
   const button = document.createElement("button");
   button.className = "coin-button";
-  button.textContent = currency; // Display coin symbol (e.g., BTC, XDG)
-  button.title = currencyName; // Tooltip with full name
+  button.textContent = currency;
+  button.title = currencyName;
   button.addEventListener("click", () => {
     activeCurrency = currency;
     const portfolio = portfolios.get(currency);
     updateTransactionTable(portfolio);
     updateDashboard(currency);
-    console.log(`Switched to portfolio: ${currencyName}`);
   });
-
   ownedCoinsPanel.appendChild(button);
-  console.log(`Coin button added for ${currencyName}`);
 }
 
-// Update the transaction table
 function updateTransactionTable(portfolio) {
-  transactionTable.innerHTML = ""; // Clear the table
-
+  transactionTable.innerHTML = "";
   portfolio.transactions.forEach((tx, index) => {
     const row = document.createElement("tr");
     row.innerHTML = `
-            <td>${tx.type}</td>
-            <td>${tx.price.toFixed(2)}</td>
-            <td>${tx.amount.toFixed(2)}</td>
-            <td>${tx.quantity.toFixed(4)}</td>
-            <td>$${tx.fees.toFixed(2)}</td>
-            <td>$${tx.total.toFixed(2)}</td>
-            <td>
-                <button class="edit-transaction" data-index="${index}">✏️</button>
-                <button class="delete-transaction" data-index="${index}">🗑️</button>
-            </td>
-        `;
+      <td>${tx.type}</td>
+      <td>${tx.price.toFixed(2)}</td>
+      <td>${tx.amount.toFixed(2)}</td>
+      <td>${tx.quantity.toFixed(4)}</td>
+      <td>$${tx.fees.toFixed(2)}</td>
+      <td>$${tx.total.toFixed(2)}</td>`;
     transactionTable.appendChild(row);
-  });
-
-  transactionTable.querySelectorAll(".delete-transaction").forEach((button) => {
-    button.addEventListener("click", (e) => {
-      const index = e.target.dataset.index;
-      portfolio.transactions.splice(index, 1);
-      updateTransactionTable(portfolio);
-      updateDashboard(activeCurrency);
-    });
   });
 }
 
-// Update dashboard UI for the selected coin
 function updateDashboard(currency) {
   const portfolio = portfolios.get(currency);
-
-  if (!portfolio) {
-    console.error("Portfolio not found for currency:", currency);
-    return;
-  }
-
-  let totalCoins = 0;
-  let totalSpent = 0;
-  let totalFees = 0;
-  let grossProfitLoss = 0;
-  let netProfitLoss = 0;
-  let totalLoss = 0;
+  let totalCoins = 0,
+    totalSpent = 0,
+    totalFees = 0,
+    grossProfit = 0,
+    totalLoss = 0;
 
   portfolio.transactions.forEach((tx) => {
     if (tx.type === "buy") {
@@ -203,35 +138,25 @@ function updateDashboard(currency) {
       totalFees += tx.fees;
     } else if (tx.type === "sell") {
       totalCoins -= tx.quantity;
-      grossProfitLoss += tx.total;
+      grossProfit += tx.total;
       totalFees += tx.fees;
 
-      const loss = totalSpent / (totalCoins + tx.quantity) * tx.quantity - tx.total;
-      if (loss > 0) totalLoss += loss + tx.fees;
+      const costBasis = totalSpent / (totalCoins + tx.quantity) * tx.quantity;
+      totalLoss += Math.max(0, costBasis - tx.total - tx.fees);
     }
   });
 
-  netProfitLoss = grossProfitLoss - totalSpent - totalFees;
+  const netProfit = grossProfit - totalSpent - totalFees;
 
   dashboardElements.averagePrice.textContent =
     totalCoins > 0 ? `$${(totalSpent / totalCoins).toFixed(2)}` : "-";
-  dashboardElements.totalCoins.textContent = totalCoins > 0 ? totalCoins.toFixed(4) : "0";
+  dashboardElements.totalCoins.textContent = totalCoins.toFixed(4);
   dashboardElements.totalFees.textContent = `$${totalFees.toFixed(2)}`;
-  dashboardElements.grossProfitLoss.textContent = `$${grossProfitLoss.toFixed(2)}`;
-  dashboardElements.netProfitLoss.textContent = `$${netProfitLoss.toFixed(2)}`;
+  dashboardElements.grossProfitLoss.textContent = `$${grossProfit.toFixed(2)}`;
+  dashboardElements.netProfitLoss.textContent = `$${netProfit.toFixed(2)}`;
   dashboardElements.totalLoss.textContent = `$${totalLoss.toFixed(2)}`;
-
-  console.log(`Dashboard updated for ${currency}:`, {
-    totalCoins,
-    totalSpent,
-    totalFees,
-    grossProfitLoss,
-    netProfitLoss,
-    totalLoss,
-  });
 }
 
-// Populate dropdown with cryptocurrencies
 async function populateCurrencyDropdown() {
   try {
     const response = await fetch("https://api.kraken.com/0/public/AssetPairs");
@@ -255,30 +180,24 @@ async function populateCurrencyDropdown() {
         option.textContent = `${name} (${code})`;
         currencySelect.appendChild(option);
       });
-
-    console.log("Dropdown populated with currencies.");
   } catch (error) {
     console.error("Failed to populate currency dropdown:", error);
   }
 }
 
-// Show Buy Fields
 function showBuyFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Buy Price per Coin:";
   amountLabel.textContent = "USD to Spend:";
-  amountInput.value = "";
-  console.log("Buy fields displayed.");
 }
 
-// Show Sell Fields
 function showSellFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Sell Price per Coin:";
   amountLabel.textContent = "Number of Coins to Sell:";
   const portfolio = portfolios.get(activeCurrency);
-  amountInput.value = portfolio
-    ? portfolio.transactions.reduce((sum, tx) => sum + (tx.type === "buy" ? tx.quantity : 0), 0).toFixed(4)
-    : "";
-  console.log("Sell fields displayed.");
+  const totalCoinsHeld = portfolio
+    ? portfolio.transactions.reduce((sum, tx) => sum + (tx.type === "buy" ? tx.quantity : -tx.quantity), 0)
+    : 0;
+  amountInput.value = totalCoinsHeld.toFixed(4);
 }
