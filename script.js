@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 newCoinButton.addEventListener("click", () => {
   modal.classList.remove("hidden");
   transactionInputs.classList.add("hidden");
+  priceInput.value = ""; // Clear the price input field
   showBuyFields();
 });
 
@@ -49,6 +50,7 @@ closeModalButton.addEventListener("click", () => closeModal());
 document.querySelectorAll('input[name="transaction-type"]').forEach((radio) => {
   radio.addEventListener("change", (e) => {
     const type = e.target.value;
+    priceInput.value = ""; // Clear the price input field when switching types
     type === "buy" ? showBuyFields() : showSellFields();
   });
 });
@@ -196,23 +198,23 @@ function showBuyFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Buy Price per Coin:";
   amountLabel.textContent = "USD to Spend:";
+  amountInput.value = ""; // Clear the amount input field for buy layout
 }
 
 function showSellFields() {
   transactionInputs.classList.remove("hidden");
   priceLabel.textContent = "Sell Price per Coin:";
   amountLabel.textContent = "Number of Coins to Sell:";
+  amountInput.value = ""; // Clear the field before setting
 
   if (!activeCurrency) {
     console.error("No active currency selected for sell operation.");
-    amountInput.value = "";
     return;
   }
 
   const portfolio = portfolios.get(activeCurrency);
   if (!portfolio) {
     console.error("Portfolio not found for active currency:", activeCurrency);
-    amountInput.value = "";
     return;
   }
 
@@ -226,7 +228,6 @@ function showSellFields() {
     amountInput.value = totalCoinsHeld.toFixed(4);
     console.log(`Sell fields prepopulated: ${totalCoinsHeld.toFixed(4)} coins held for ${activeCurrency}.`);
   } else {
-    amountInput.value = "";
     console.warn(`No coins available to sell for ${activeCurrency}.`);
   }
 }
