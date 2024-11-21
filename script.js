@@ -74,7 +74,7 @@ addTransactionButton.addEventListener("click", () => {
   updateTransactionTable(portfolio);
   updateDashboard(currency);
 
-  closeModal();
+  closeModal(); // Close modal after adding a transaction
 });
 
 function closeModal() {
