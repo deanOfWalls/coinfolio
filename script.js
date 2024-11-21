@@ -185,26 +185,28 @@ function showSellFields() {
   amountInput.value = ""; // Clear input before populating
 
   if (!activeCurrency) {
-    console.error("No active currency selected.");
+    console.error("No active currency selected. Cannot prepopulate coins to sell.");
     return;
   }
 
   const portfolio = portfolios.get(activeCurrency);
   if (!portfolio) {
-    console.error("No portfolio found for active currency:", activeCurrency);
+    console.error(`No portfolio found for currency: ${activeCurrency}`);
     return;
   }
 
   const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
-    return tx.type === "buy" ? sum + tx.quantity : sum - tx.quantity;
+    if (tx.type === "buy") return sum + tx.quantity;
+    if (tx.type === "sell") return sum - tx.quantity;
+    return sum;
   }, 0);
 
   if (totalCoinsHeld > 0) {
     amountInput.value = totalCoinsHeld.toFixed(4);
-    console.log(`Prepopulated with total coins held: ${totalCoinsHeld.toFixed(4)} for ${activeCurrency}.`);
+    console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)} coins for ${activeCurrency}.`);
   } else {
-    console.warn(`No coins available for ${activeCurrency}.`);
-    amountInput.value = "";
+    amountInput.value = ""; // Clear if no coins are held
+    console.warn(`No coins available to sell for currency: ${activeCurrency}`);
   }
 }
 
