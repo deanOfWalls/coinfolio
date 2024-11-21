@@ -74,12 +74,14 @@ addTransactionButton.addEventListener("click", () => {
   updateTransactionTable(portfolio);
   updateDashboard(currency);
 
+  console.log("Transaction added successfully. Closing modal...");
   closeModal(); // Close modal after adding a transaction
 });
 
 function closeModal() {
   modal.classList.add("hidden");
   transactionInputs.classList.add("hidden");
+  console.log("Modal closed.");
 }
 
 function createPortfolio(currency) {
