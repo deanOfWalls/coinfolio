@@ -101,6 +101,7 @@ function addCoinToOwnedPanel(currency, currencyName) {
   button.title = currencyName;
   button.addEventListener("click", () => {
     activeCurrency = currency;
+    console.log("Active currency set to:", activeCurrency);
     const portfolio = portfolios.get(currency);
     updateTransactionTable(portfolio);
     updateDashboard(currency);
@@ -221,6 +222,11 @@ function showSellFields() {
     return sum;
   }, 0);
 
-  amountInput.value = totalCoinsHeld > 0 ? totalCoinsHeld.toFixed(4) : "";
-  console.log("Sell fields displayed, pre-filled with total coins held:", totalCoinsHeld);
+  if (totalCoinsHeld > 0) {
+    amountInput.value = totalCoinsHeld.toFixed(4);
+    console.log(`Sell fields prepopulated: ${totalCoinsHeld.toFixed(4)} coins held for ${activeCurrency}.`);
+  } else {
+    amountInput.value = "";
+    console.warn(`No coins available to sell for ${activeCurrency}.`);
+  }
 }
