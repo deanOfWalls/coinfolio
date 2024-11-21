@@ -33,6 +33,7 @@ const fallbackCurrencyNames = {
   BCH: "Bitcoin Cash",
   XMR: "Monero",
   DOT: "Polkadot",
+  XDG: "Dogecoin", // Fixed example you mentioned
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -208,8 +209,6 @@ function showSellFields() {
     return;
   }
 
-  console.log(`Portfolio transactions for ${activeCurrency}:`, portfolio.transactions);
-
   // Calculate total coins held
   const totalCoinsHeld = portfolio.transactions.reduce((sum, tx) => {
     if (tx.type === "buy") return sum + tx.quantity;
@@ -217,13 +216,9 @@ function showSellFields() {
     return sum;
   }, 0);
 
-  if (totalCoinsHeld > 0) {
-    amountInput.value = totalCoinsHeld.toFixed(4); // Prepopulate the input
-    console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)} for ${activeCurrency}`);
-  } else {
-    amountInput.value = ""; // Clear if no coins are held
-    console.warn(`No coins available to sell for active currency: ${activeCurrency}`);
-  }
+  // Prepopulate the input field
+  amountInput.value = totalCoinsHeld > 0 ? totalCoinsHeld.toFixed(4) : "";
+  console.log(`Prepopulated 'Number of Coins to Sell' with: ${totalCoinsHeld.toFixed(4)}`);
 }
 
 async function populateCurrencyDropdown() {
