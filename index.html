@@ -11,29 +11,22 @@
         <h1>Coinfolio</h1>
     </header>
     <main>
-        <!-- Dashboard Section -->
         <section id="dashboard">
-            <h2>Dashboard</h2>
-            <div class="kpi">
-                <p><strong>Average Price Paid:</strong> <span id="average-price">-</span></p>
-                <p><strong>Total Coins Held:</strong> <span id="total-coins">-</span></p>
-                <p><strong>Fees Paid:</strong> <span id="total-fees">-</span></p>
-                <p><strong>Gross Profit:</strong> <span id="gross-profit-loss">-</span></p>
-                <p><strong>Net Profit:</strong> <span id="net-profit-loss">-</span></p>
-                <p><strong>Total Loss:</strong> <span id="total-loss">-</span></p>
+            <div>
+                <h2>Dashboard</h2>
+                <p>Average Price Paid: <span id="average-price">-</span></p>
+                <p>Total Coins Held: <span id="total-coins">0</span></p>
+                <p>Fees Paid: <span id="total-fees">$0.00</span></p>
+                <p>Gross Profit: <span id="gross-profit-loss">$0.00</span></p>
+                <p>Net Profit: <span id="net-profit-loss">$0.00</span></p>
+                <p>Total Loss: <span id="total-loss">$0.00</span></p>
             </div>
         </section>
 
-        <!-- Owned Coins Panel -->
-        <section id="owned-coins-panel">
-            <h3>Owned Coins</h3>
-            <!-- Dynamically added buttons for owned coins will appear here -->
-        </section>
+        <section id="owned-coins-panel"></section>
 
-        <!-- Transactions Table -->
-        <section id="transactions">
-            <h3>Transactions</h3>
-            <table>
+        <section>
+            <table id="transaction-table">
                 <thead>
                     <tr>
                         <th>Type</th>
@@ -42,49 +35,40 @@
                         <th>Quantity</th>
                         <th>Fees</th>
                         <th>Total</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="transaction-table">
-                    <!-- Transaction rows will appear here -->
+                <tbody>
+                    <!-- Transactions will populate here -->
                 </tbody>
             </table>
+            
+            <button id="open-modal">+ Add Transaction</button>
         </section>
-
-        <!-- Add Record Button -->
-        <button id="open-modal">+ Add Transaction</button>
     </main>
 
-    <!-- Modal for Adding Cryptocurrency -->
     <div id="modal" class="hidden">
         <div class="modal-content">
-            <h3>Add Transaction</h3>
-            <label for="currency-select">Select Currency:</label>
-            <select id="currency-select">
-                <option value="">Loading...</option>
-            </select>
-
-            <label>
-                <input type="radio" name="transaction-type" value="buy" checked>
-                Buy
-            </label>
-            <label>
-                <input type="radio" name="transaction-type" value="sell">
-                Sell
-            </label>
-
             <div id="transaction-inputs">
+                <label for="currency-select">Currency</label>
+                <select id="currency-select"></select>
+                <div class="modal-radio-buttons">
+                    <label>
+                        <input type="radio" name="transaction-type" value="buy" checked> Buy
+                    </label>
+                    <label>
+                        <input type="radio" name="transaction-type" value="sell"> Sell
+                    </label>
+                </div>
                 <label id="price-label">Buy Price per Coin:</label>
-                <input type="number" id="price-input" placeholder="Enter price per coin">
-
+                <input type="number" id="price-input">
                 <label id="amount-label">USD to Spend:</label>
-                <input type="number" id="amount-input" placeholder="Enter amount">
+                <input type="number" id="amount-input">
             </div>
-
             <button id="add-transaction">Add</button>
             <button id="close-modal">Cancel</button>
         </div>
     </div>
-
-    <script src="script.js"></script>
+    <script type="module" src="./js/main.js"></script>
 </body>
 </html>
